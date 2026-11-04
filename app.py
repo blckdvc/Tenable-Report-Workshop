@@ -41,6 +41,7 @@ WEB = os.path.join(RACINE, "web")
 PROFILS = os.path.join(RACINE, "profils")
 RAPPORTS = os.path.join(RACINE, "rapports")
 EXPORTS_SC = os.path.join(RACINE, "exports_security_center")     # CSV récupérés via l'API, conservés pour les comparaisons
+EXPORTS_VM = os.path.join(RACINE, "exports_vulnerability_management")
 SESSION = tempfile.mkdtemp(prefix="atelier_")
 os.makedirs(PROFILS, exist_ok=True)
 os.makedirs(RAPPORTS, exist_ok=True)
@@ -603,9 +604,10 @@ def api_sc_exporter():
             return erreur(tr("Sélection du périmètre invalide."))
     vm = p["source"].get("produit") == "vm"                     # le produit est un réglage du profil
     client = VMC.Client(CFG.lire()["vulnmanagement"]) if vm else SC.Client(CFG.lire()["securitycenter"])
-    os.makedirs(EXPORTS_SC, exist_ok=True)
+    dossier = EXPORTS_VM if vm else EXPORTS_SC                  # un dossier par produit
+    os.makedirs(dossier, exist_ok=True)
     nom = f"{slug(p['nom'])}_{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.csv"
-    chemin = os.path.join(EXPORTS_SC, nom)
+    chemin = os.path.join(dossier, nom)
     journal = ouvrir_journal(d.get("journal"))
     try:
         mod = MODELES.get(d.get("modele") or "", {})
@@ -625,7 +627,7 @@ def api_sc_exporter():
         journal.journal["fin"] = True
     eid = uuid.uuid4().hex[:12]
     EXPORTS[eid] = {"chemin": chemin, "nom": nom, "taille": os.path.getsize(chemin), "conserve": True, "portee": PT.portee(p["source"])}
-    return jsonify({"id": eid, "nom": nom, "taille": EXPORTS[eid]["taille"], "dossier": EXPORTS_SC, "portee": EXPORTS[eid]["portee"], **res})
+    return jsonify({"id": eid, "nom": nom, "taille": EXPORTS[eid]["taille"], "dossier": dossier, "portee": EXPORTS[eid]["portee"], **res})
 
 
 @app.post("/api/smtp/tester")

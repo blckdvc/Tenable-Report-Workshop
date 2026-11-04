@@ -127,7 +127,16 @@
   "Écriture du fichier CSV ({n} lignes).": "Writing the CSV file ({n} rows).",
   "Contrôle du fichier obtenu.": "Checking the resulting file.",
   "Échec : {err}": "Failed: {err}",
-  "Terminé : {lignes} ligne(s) en {secondes} s.": "Done: {lignes} row(s) in {secondes} s."
+  "Terminé : {lignes} ligne(s) en {secondes} s.": "Done: {lignes} row(s) in {secondes} s.",
+  "Droits insuffisants dans Vulnerability Management pour {methode} /{chemin} (HTTP 403{msg}).": "Insufficient permissions in Vulnerability Management for {methode} /{chemin} (HTTP 403{msg}).",
+  "Export des assets v2 refusé ({err}) : essai avec l'export des assets v1.": "Asset export v2 refused ({err}): trying asset export v1.",
+  "{n} asset(s) portent ces tags selon le poste de travail de Vulnerability Management.": "{n} asset(s) carry these tags according to the Vulnerability Management workbench.",
+  "{garde} enregistrement(s) sur {total} concernent ces assets.": "{garde} of {total} record(s) relate to these assets.",
+  "Filtre de tags : {tags}.": "Tag filter: {tags}.",
+  "Aucun résultat avec le filtre de tags de l'export : recherche des assets portant ces tags.": "No results with the export's tag filter: looking up the assets that carry these tags.",
+  "Le filtre de tags de l'export n'a rien renvoyé : la sélection par tags a été faite ici.": "The export's tag filter returned nothing: the tag selection was done locally.",
+  "Aucune vulnérabilité ouverte sur les assets portant ces tags ({tags}), aux sévérités demandées. Le journal de la récupération détaille chaque étape.": "No open vulnerabilities on the assets carrying these tags ({tags}) at the requested severities. The retrieval log details each step.",
+  "L'export des assets demande le rôle Basic avec la permission « Can View » sur les assets (objet « All Assets »), ou le rôle Administrator ; les notes demandent aussi une licence Tenable One ou Lumin.": "The asset export requires the Basic role with the “Can View” permission on the assets (“All Assets” object), or the Administrator role; the scores also require a Tenable One or Lumin licence."
  },
  "es": {
   "{fichier}, ligne {n} : expression régulière invalide ({err}).": "{fichier}, línea {n}: expresión regular no válida ({err}).",
@@ -257,7 +266,16 @@
   "Écriture du fichier CSV ({n} lignes).": "Escribiendo el archivo CSV ({n} filas).",
   "Contrôle du fichier obtenu.": "Comprobando el archivo obtenido.",
   "Échec : {err}": "Error: {err}",
-  "Terminé : {lignes} ligne(s) en {secondes} s.": "Terminado: {lignes} fila(s) en {secondes} s."
+  "Terminé : {lignes} ligne(s) en {secondes} s.": "Terminado: {lignes} fila(s) en {secondes} s.",
+  "Droits insuffisants dans Vulnerability Management pour {methode} /{chemin} (HTTP 403{msg}).": "Permisos insuficientes en Vulnerability Management para {methode} /{chemin} (HTTP 403{msg}).",
+  "Export des assets v2 refusé ({err}) : essai avec l'export des assets v1.": "Exportación de activos v2 rechazada ({err}): se intenta la exportación de activos v1.",
+  "{n} asset(s) portent ces tags selon le poste de travail de Vulnerability Management.": "{n} activo(s) tienen estas etiquetas según el área de trabajo de Vulnerability Management.",
+  "{garde} enregistrement(s) sur {total} concernent ces assets.": "{garde} de {total} registro(s) corresponden a estos activos.",
+  "Filtre de tags : {tags}.": "Filtro de etiquetas: {tags}.",
+  "Aucun résultat avec le filtre de tags de l'export : recherche des assets portant ces tags.": "Sin resultados con el filtro de etiquetas de la exportación: buscando los activos con estas etiquetas.",
+  "Le filtre de tags de l'export n'a rien renvoyé : la sélection par tags a été faite ici.": "El filtro de etiquetas de la exportación no devolvió nada: la selección por etiquetas se hizo aquí.",
+  "Aucune vulnérabilité ouverte sur les assets portant ces tags ({tags}), aux sévérités demandées. Le journal de la récupération détaille chaque étape.": "No hay vulnerabilidades abiertas en los activos con estas etiquetas ({tags}) con las severidades solicitadas. El registro de la recuperación detalla cada paso.",
+  "L'export des assets demande le rôle Basic avec la permission « Can View » sur les assets (objet « All Assets »), ou le rôle Administrator ; les notes demandent aussi une licence Tenable One ou Lumin.": "La exportación de activos requiere el rol Basic con el permiso «Can View» sobre los activos (objeto «All Assets»), o el rol Administrator; las puntuaciones requieren además una licencia Tenable One o Lumin."
  },
  "it": {
   "{fichier}, ligne {n} : expression régulière invalide ({err}).": "{fichier}, riga {n}: espressione regolare non valida ({err}).",
@@ -387,6 +405,15 @@
   "Écriture du fichier CSV ({n} lignes).": "Scrittura del file CSV ({n} righe).",
   "Contrôle du fichier obtenu.": "Controllo del file ottenuto.",
   "Échec : {err}": "Errore: {err}",
-  "Terminé : {lignes} ligne(s) en {secondes} s.": "Completato: {lignes} riga/righe in {secondes} s."
+  "Terminé : {lignes} ligne(s) en {secondes} s.": "Completato: {lignes} riga/righe in {secondes} s.",
+  "Droits insuffisants dans Vulnerability Management pour {methode} /{chemin} (HTTP 403{msg}).": "Autorizzazioni insufficienti in Vulnerability Management per {methode} /{chemin} (HTTP 403{msg}).",
+  "Export des assets v2 refusé ({err}) : essai avec l'export des assets v1.": "Esportazione degli asset v2 rifiutata ({err}): tentativo con l'esportazione degli asset v1.",
+  "{n} asset(s) portent ces tags selon le poste de travail de Vulnerability Management.": "{n} asset hanno questi tag secondo il workbench di Vulnerability Management.",
+  "{garde} enregistrement(s) sur {total} concernent ces assets.": "{garde} di {total} record riguardano questi asset.",
+  "Filtre de tags : {tags}.": "Filtro tag: {tags}.",
+  "Aucun résultat avec le filtre de tags de l'export : recherche des assets portant ces tags.": "Nessun risultato con il filtro tag dell'esportazione: ricerca degli asset con questi tag.",
+  "Le filtre de tags de l'export n'a rien renvoyé : la sélection par tags a été faite ici.": "Il filtro tag dell'esportazione non ha restituito nulla: la selezione per tag è stata fatta qui.",
+  "Aucune vulnérabilité ouverte sur les assets portant ces tags ({tags}), aux sévérités demandées. Le journal de la récupération détaille chaque étape.": "Nessuna vulnerabilità aperta sugli asset con questi tag ({tags}) alle severità richieste. Il registro del recupero descrive ogni passaggio.",
+  "L'export des assets demande le rôle Basic avec la permission « Can View » sur les assets (objet « All Assets »), ou le rôle Administrator ; les notes demandent aussi une licence Tenable One ou Lumin.": "L'esportazione degli asset richiede il ruolo Basic con l'autorizzazione «Can View» sugli asset (oggetto «All Assets»), oppure il ruolo Administrator; i punteggi richiedono anche una licenza Tenable One o Lumin."
  }
 }

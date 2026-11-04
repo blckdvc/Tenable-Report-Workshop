@@ -131,17 +131,18 @@ class Client:
             data = r.json()
         except ValueError:
             data = None
-        if r.status_code == 401:
-            raise ErreurDonnees(tr("Clés d'API refusées par Vulnerability Management (invalides ou expirées)."))
-        if r.status_code == 403:
-            raise ErreurDonnees(tr("Droits insuffisants dans Vulnerability Management : l'export des vulnérabilités demande un rôle Basic "
-                                   "ou supérieur, avec accès aux assets concernés."))
-        if r.status_code == 429:
-            raise ErreurDonnees(tr("Vulnerability Management limite les requêtes, ou un export identique est déjà en cours : "
-                                   "patientez quelques minutes et réessayez."))
         if r.status_code >= 400:
             msg = (data.get("message") or data.get("error") or "") if isinstance(data, dict) else ""
-            err = ErreurDonnees(tr("Vulnerability Management a refusé la requête : {msg}", msg=msg or f"HTTP {r.status_code}"))
+            if r.status_code == 401:
+                err = ErreurDonnees(tr("Clés d'API refusées par Vulnerability Management (invalides ou expirées)."))
+            elif r.status_code == 403:
+                err = ErreurDonnees(tr("Droits insuffisants dans Vulnerability Management pour {methode} /{chemin} (HTTP 403{msg}).",
+                                       methode=methode, chemin=chemin.lstrip("/"), msg=f" : {msg}" if msg else ""))
+            elif r.status_code == 429:
+                err = ErreurDonnees(tr("Vulnerability Management limite les requêtes, ou un export identique est déjà en cours : "
+                                       "patientez quelques minutes et réessayez."))
+            else:
+                err = ErreurDonnees(tr("Vulnerability Management a refusé la requête : {msg}", msg=msg or f"HTTP {r.status_code}"))
             err.statut = r.status_code
             raise err
         return data
@@ -210,18 +211,39 @@ class Client:
         return [{"nom": c, "valeurs": [{"nom": n, "description": d} for n, d in sorted(v.items(), key=lambda x: x[0].lower())]}
                 for c, v in sorted(cats.items(), key=lambda x: x[0].lower())]
 
-    def decompter(self, source):
-        """Nombre d'assets de la sélection (tags et plage d'adresses), d'après la liste des assets du poste de travail."""
+    @staticmethod
+    def _params_workbench(source):
         params = {"date_range": 90, "filter.search_type": "and"}
         filtres = [(f"tag.{c}", "set-has", ",".join(v)) for c, v in P.tags_source(source).items()]
         for i, (nom, qual, val) in enumerate(filtres):
             params.update({f"filter.{i}.filter": nom, f"filter.{i}.quality": qual, f"filter.{i}.value": val})
-        rep = self._appel("GET", "workbenches/assets", params=params) or {}
+        return params
+
+    def decompter(self, source):
+        """Nombre d'assets de la sélection (tags et plage d'adresses), d'après la liste des assets du poste de travail."""
+        rep = self._appel("GET", "workbenches/assets", params=self._params_workbench(source)) or {}
         n = rep.get("total_asset_count", rep.get("total"))
         return int(n) if str(n or "").isdigit() else (len(rep["assets"]) if isinstance(rep.get("assets"), list) else None)
 
+    def assets_tags(self, source):
+        """Identifiants des assets portant les tags de la sélection, d'après le poste de travail (5 000 assets au plus)."""
+        rep = self._appel("GET", "workbenches/assets", params={**self._params_workbench(source), "limit": 5000}) or {}
+        return {str(a.get("id")) for a in (rep.get("assets") or []) if isinstance(a, dict) and a.get("id")}
+
+    def notes_acr_aes(self, journal):
+        """{asset: (ACR, AES)} par l'export des assets : v2, puis v1 si la v2 est refusée. Sans filtre : la v2 n'accepte
+        ni tags ni plage d'adresses, et le rapprochement avec les vulnérabilités se fait de toute façon par identifiant."""
+        try:
+            journal(tr("Demande d'export des assets (notes ACR et AES)."))
+            return notes_assets(self._export("assets/v2", {"chunk_size": 1000}, journal=journal))
+        except ErreurDonnees as e:
+            if getattr(e, "statut", None) not in (400, 403, 404):
+                raise
+            journal(tr("Export des assets v2 refusé ({err}) : essai avec l'export des assets v1.", err=e))
+        return notes_assets(self._export("assets", {"chunk_size": 1000}, journal=journal))
+
     @staticmethod
-    def corps_vulns(source, severites=None, filtres=True):
+    def corps_vulns(source, severites=None, filtres=True, tags=True):
         corps = {"num_assets": 500, "include_unlicensed": False}
         if filtres:
             f = {"state": ["open", "reopened"]}
@@ -230,9 +252,22 @@ class Client:
                 f["severity"] = sev
             if str((source or {}).get("cidr") or "").strip():
                 f["cidr_range"] = str(source["cidr"]).strip()
-            f.update(Client.filtres_tags(source))
+            if tags:
+                f.update(Client.filtres_tags(source))
             corps["filters"] = f
         return corps
+
+    def _vulns_par_tags_local(self, source, severites, rappel, journal, filtres=True):
+        """Plan B quand le filtre de tags de l'export ne donne rien ou est refusé : export sans tags, puis sélection
+        ici des vulnérabilités des assets portant ces tags (d'après le poste de travail)."""
+        ids = self.assets_tags(source)
+        journal(tr("{n} asset(s) portent ces tags selon le poste de travail de Vulnerability Management.", n=len(ids)))
+        if not ids:
+            return []
+        recs = self._export("vulns", self.corps_vulns(source, severites, filtres=filtres, tags=False), rappel, journal)
+        garde = [r for r in recs if str(_prem(_plat(r), "asset.uuid", "asset.id")) in ids]
+        journal(tr("{garde} enregistrement(s) sur {total} concernent ces assets.", garde=len(garde), total=len(recs)))
+        return garde
 
     def exporter_csv(self, source, chemin, severites=None, limite=2_000_000, rappel=None, journal=None):
         """Écrit le CSV. Renvoie {lignes, secondes, avertissement}. `journal(message)` : suivi des étapes (facultatif)."""
@@ -240,19 +275,32 @@ class Client:
         journal = journal or (lambda m: None)
         source = {**SOURCE_DEFAUT, **(source or {})}
         journal(tr("Demande d'export des vulnérabilités à {url}.", url=self.url))
+        tags = P.tags_source(source)
+        if tags:
+            journal(tr("Filtre de tags : {tags}.", tags=" ; ".join(f"{c} = {' | '.join(v)}" for c, v in tags.items())))
         try:
             recs = self._export("vulns", self.corps_vulns(source, severites), rappel, journal)
+            if not recs and tags:
+                journal(tr("Aucun résultat avec le filtre de tags de l'export : recherche des assets portant ces tags."))
+                recs = self._vulns_par_tags_local(source, severites, rappel, journal)
+                if recs:
+                    avert.append(tr("Le filtre de tags de l'export n'a rien renvoyé : la sélection par tags a été faite ici."))
         except ErreurDonnees as e:
             if getattr(e, "statut", None) != 400:
                 raise
-            if P.tags_source(source):                        # sans filtre, le périmètre choisi serait ignoré en silence
-                raise ErreurDonnees(tr("Les filtres de tags ont été refusés par Vulnerability Management : {err}", err=e))
             journal(tr("Filtres refusés par Vulnerability Management : nouvel export sans filtres, le tri sera fait ici."))
-            recs = self._export("vulns", self.corps_vulns(source, severites, filtres=False), rappel, journal)     # filtres refusés : tri local
+            if tags:                                         # le périmètre choisi n'est jamais ignoré en silence
+                recs = self._vulns_par_tags_local(source, severites, rappel, journal, filtres=False)
+            else:
+                recs = self._export("vulns", self.corps_vulns(source, severites, filtres=False), rappel, journal)
             avert.append(tr("Les filtres de l'export ont été refusés par Vulnerability Management : le tri a été fait ici."))
         if len(recs) > limite:
             raise ErreurDonnees(tr("Plus de {limite} lignes : affinez la requête (plage d'adresses, sévérités).", limite=limite))
         lignes = [ligne_api(r) for r in recs]
+        if not lignes and tags:
+            raise ErreurDonnees(tr("Aucune vulnérabilité ouverte sur les assets portant ces tags ({tags}), aux sévérités demandées. "
+                                   "Le journal de la récupération détaille chaque étape.",
+                                   tags=" ; ".join(f"{c} = {' | '.join(v)}" for c, v in tags.items())))
         if not lignes:
             raise ErreurDonnees(tr("La requête n'a renvoyé aucune vulnérabilité : vérifiez la plage d'adresses et les sévérités."))
         if not any(l["definition.name"] for l in lignes):
@@ -261,18 +309,17 @@ class Client:
         df = pd.DataFrame(lignes)
         if str(source.get("acr_aes", "1")) == "1":
             try:
-                filtres = {"cidr_range": str(source["cidr"]).strip()} if str(source.get("cidr") or "").strip() else {}
-                filtres.update(self.filtres_tags(source))
-                journal(tr("Demande d'export des assets (notes ACR et AES)."))
-                notes = notes_assets(self._export("assets/v2", {"chunk_size": 1000, **({"filters": filtres} if filtres else {})},
-                                                  journal=journal))
+                notes = self.notes_acr_aes(journal)
                 df["acr"] = df["asset.id"].map(lambda a: (notes.get(str(a)) or (None, None))[0])
                 df["aes"] = df["asset.id"].map(lambda a: (notes.get(str(a)) or (None, None))[1])
                 if df["acr"].isna().all() and df["aes"].isna().all():
                     avert.append(tr("Aucune note ACR ou AES n'a été retrouvée pour ces machines."))
             except ErreurDonnees as e:
                 journal(tr("Notes ACR et AES indisponibles : {err}", err=e))
-                avert.append(tr("ACR et AES indisponibles ({err}) : le rapport est produit sans ces notes.", err=e))
+                avert.append(tr("ACR et AES indisponibles ({err}) : le rapport est produit sans ces notes.", err=e)
+                             + (" " + tr("L'export des assets demande le rôle Basic avec la permission « Can View » sur les assets "
+                                         "(objet « All Assets »), ou le rôle Administrator ; les notes demandent aussi une licence "
+                                         "Tenable One ou Lumin.") if getattr(e, "statut", None) == 403 else ""))
         journal(tr("Conversion de {n} ligne(s) et écriture du fichier CSV.", n=len(df)))
         out = VM.convertir(df, "api")
         if severites:

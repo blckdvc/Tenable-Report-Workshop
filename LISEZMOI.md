@@ -46,7 +46,7 @@ En alternative au fichier CSV, l'application peut interroger Security Center et 
 2. Même section, carte « Requête d'export » (propre à chaque profil client) : dépôts, liste d'actifs ou requête enregistrée, et au besoin des filtres supplémentaires au format JSON. Le bouton « Afficher les dépôts, listes et requêtes disponibles » permet de les choisir d'un clic. Les sévérités viennent de l'onglet Périmètre. « Voir la requête envoyée à l'API » montre le corps JSON exact de l'appel `POST /rest/analysis`.
 3. Onglet **Générer**, étape 1 : choisissez « Security Center (API) », puis « Récupérer depuis Security Center ». Le lien « Modifier la requête » mène à la configuration. L'aperçu s'affiche comme pour un fichier.
 
-Chaque récupération est conservée dans `exports_security_center/` (un CSV horodaté par profil). Ces fichiers servent de point de départ pour les comparaisons : déposez celui du mois dernier comme « export précédent », et récupérez l'export récent via l'API.
+Chaque récupération est conservée dans `exports_security_center/` (Security Center) ou `exports_vulnerability_management/` (Vulnerability Management), un CSV horodaté par profil. Ces fichiers servent de point de départ pour les comparaisons : déposez celui du mois dernier comme « export précédent », et récupérez l'export récent via l'API.
 
 Les clés sont enregistrées dans `config.json`, accessible à votre utilisateur seul. Vous pouvez plutôt les fournir par les variables d'environnement `TENABLE_SC_URL`, `TENABLE_SC_ACCESS_KEY` et `TENABLE_SC_SECRET_KEY`, qui l'emportent. Ne diffusez pas `config.json`.
 
@@ -156,7 +156,8 @@ Modèles disponibles : `complet`, `synthese`, `fiches`, `comparaison`, `plan_exc
 | `generer.py` | Génération en ligne de commande |
 | `moteur/` | Analyse des exports, règles, graphiques et modèles de rapport (`moteur/modeles/`), client Security Center (`securitycenter.py`), envoi SMTP (`courriel.py`) et configuration (`config.py`) |
 | `config.json` | Connexion Security Center et serveur SMTP (créé à l'enregistrement, droits restreints) |
-| `exports_security_center/` | Exports récupérés via l'API, conservés pour les comparaisons |
+| `exports_security_center/` | Exports récupérés via l'API de Security Center, conservés pour les comparaisons |
+| `exports_vulnerability_management/` | Exports récupérés via l'API de Vulnerability Management, conservés pour les comparaisons |
 | `web/` | Interface (HTML, CSS, JavaScript ; aucune ressource externe) |
 | `regles/` | Règles : `base.csv` (regroupement, commun) et `textes_<langue>.csv` (textes par langue) |
 | `profils/` | Profils clients : habillage, périmètre et logo |
