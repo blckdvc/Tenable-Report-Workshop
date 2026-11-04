@@ -75,7 +75,7 @@ Connection settings are stored in `config.json`. The app creates this file when 
 
 ## Outputs
 
-Reports are saved in `rapports/`. Data fetched from Security Center is saved as timestamped CSV files in `exports_security_center/`, so it can be reused for comparisons.
+Reports are saved in `rapports/`. Data fetched through the API is saved as timestamped CSV files, in `exports_security_center/` for Security Center and `exports_vulnerability_management/` for Vulnerability Management, so it can be reused for comparisons.
 
 | Template | Format | Contents |
 |---|---|---|

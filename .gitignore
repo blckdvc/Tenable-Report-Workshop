@@ -6,6 +6,8 @@ rapports/*
 !rapports/.gitkeep
 exports_security_center/*
 !exports_security_center/.gitkeep
+exports_vulnerability_management/*
+!exports_vulnerability_management/.gitkeep
 
 # Python / OS
 __pycache__/

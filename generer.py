@@ -79,9 +79,9 @@ if len(args.exports) != attendus:
              + (tr(" dont un récupéré via Security Center : indiquez {n} fichier(s) CSV.", n=attendus) if args.securitycenter else "."))
 if args.securitycenter:
     try:
-        dossier = os.path.join(RACINE, "exports_security_center")
-        nom = f"{args.profil or 'defaut'}_{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.csv"
         vm = (source or {}).get("produit") == "vm"
+        dossier = os.path.join(RACINE, "exports_vulnerability_management" if vm else "exports_security_center")
+        nom = f"{args.profil or 'defaut'}_{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.csv"
         client = VMC.Client(CFG.lire()["vulnmanagement"]) if vm else SC.Client(CFG.lire()["securitycenter"])
         res = client.exporter_csv(
             {**SC.SOURCE_DEFAUT, **VMC.SOURCE_DEFAUT, **(source or {})}, os.path.join(dossier, nom), perimetre_pour(MODELES[args.modele], perimetre).get("severites"))
