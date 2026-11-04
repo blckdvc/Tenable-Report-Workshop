@@ -1,0 +1,17 @@
+{
+ "Voir un exemple": "View an example",
+ "Génération de l'exemple…": "Generating the example…",
+ "Exemple avec des données fictives, habillage du profil « {profil} »": "Example with fictitious data, branding of the profile “{profil}”",
+ "Ouvrir le classeur d'exemple": "Open the example workbook",
+ "Ouvrir le PDF d'exemple": "Open the example PDF",
+ "Page {n}": "Page {n}",
+ "Feuille « {nom} »": "Sheet “{nom}”",
+ "{n} / {total}": "{n} / {total}",
+ "Fermer": "Close",
+ "Pages du rapport": "Report pages",
+ "Page précédente": "Previous page",
+ "Page suivante": "Next page",
+ "Données fictives : le contenu réel dépendra de votre export.": "Fictitious data: the actual content will depend on your export.",
+ "Ouvrir le fichier d'exemple": "Open the example file",
+ "Cliquer pour agrandir ou réduire": "Click to zoom in or out"
+}

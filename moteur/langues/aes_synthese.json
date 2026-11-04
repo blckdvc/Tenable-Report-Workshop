@@ -1,0 +1,50 @@
+{
+  "en": {
+    "AES {v}": "AES {v}",
+    "AES moyen": "Average AES",
+    "AES moyen du périmètre": "Average AES of the scope",
+    "sur 1 000": "out of 1,000",
+    "Posture d'exposition (AES)": "Exposure posture (AES)",
+    "Risque faible": "Low risk",
+    "Risque moyen": "Medium risk",
+    "Risque élevé": "High risk",
+    "Répartition des {n} : <b>{h}</b> à risque élevé, <b>{m}</b> à risque moyen, <b>{b}</b> à risque faible. AES maximum : <b>{mx}</b>.": "Breakdown of the {n}: <b>{h}</b> at high risk, <b>{m}</b> at medium risk, <b>{b}</b> at low risk. Highest AES: <b>{mx}</b>.",
+    "Les {n} machines les plus exposées (classées par AES)": "The {n} most exposed machines (ranked by AES)",
+    "Votre périmètre": "Your scope",
+    "Lire l'AES": "Reading the AES",
+    "Plus le score est élevé, plus la machine est exposée : en dessous de 350 l'exposition est faible, de 350 à 649 elle est moyenne, à partir de 650 elle est élevée.": "The higher the score, the more exposed the machine: below 350 exposure is low, from 350 to 649 it is medium, from 650 it is high.",
+    "<b>Réduire l'exposition globale</b> : le Cyber Exposure Score du périmètre est de {aes} ({niveau}) ; il baisse en corrigeant d'abord les machines dont l'AES est le plus élevé.": "<b>Reduce overall exposure</b>: the scope's Cyber Exposure Score is {aes} ({niveau}); it falls by fixing first the machines with the highest AES."
+  },
+  "es": {
+    "AES {v}": "AES {v}",
+    "AES moyen": "AES medio",
+    "AES moyen du périmètre": "AES medio del alcance",
+    "sur 1 000": "sobre 1 000",
+    "Posture d'exposition (AES)": "Postura de exposición (AES)",
+    "Risque faible": "Riesgo bajo",
+    "Risque moyen": "Riesgo medio",
+    "Risque élevé": "Riesgo alto",
+    "Répartition des {n} : <b>{h}</b> à risque élevé, <b>{m}</b> à risque moyen, <b>{b}</b> à risque faible. AES maximum : <b>{mx}</b>.": "Distribución de {n}: <b>{h}</b> con riesgo alto, <b>{m}</b> con riesgo medio y <b>{b}</b> con riesgo bajo. AES máximo: <b>{mx}</b>.",
+    "Les {n} machines les plus exposées (classées par AES)": "Los {n} equipos más expuestos (ordenados por AES)",
+    "Votre périmètre": "Su alcance",
+    "Lire l'AES": "Cómo leer el AES",
+    "Plus le score est élevé, plus la machine est exposée : en dessous de 350 l'exposition est faible, de 350 à 649 elle est moyenne, à partir de 650 elle est élevée.": "Cuanto más alta es la puntuación, más expuesto está el equipo: por debajo de 350 la exposición es baja, de 350 a 649 es media y a partir de 650 es alta.",
+    "<b>Réduire l'exposition globale</b> : le Cyber Exposure Score du périmètre est de {aes} ({niveau}) ; il baisse en corrigeant d'abord les machines dont l'AES est le plus élevé.": "<b>Reducir la exposición global</b>: el Cyber Exposure Score del alcance es {aes} ({niveau}); baja corrigiendo primero los equipos con el AES más alto."
+  },
+  "it": {
+    "AES {v}": "AES {v}",
+    "AES moyen": "AES medio",
+    "AES moyen du périmètre": "AES medio del perimetro",
+    "sur 1 000": "su 1 000",
+    "Posture d'exposition (AES)": "Postura di esposizione (AES)",
+    "Risque faible": "Rischio basso",
+    "Risque moyen": "Rischio medio",
+    "Risque élevé": "Rischio alto",
+    "Répartition des {n} : <b>{h}</b> à risque élevé, <b>{m}</b> à risque moyen, <b>{b}</b> à risque faible. AES maximum : <b>{mx}</b>.": "Ripartizione di {n}: <b>{h}</b> a rischio alto, <b>{m}</b> a rischio medio, <b>{b}</b> a rischio basso. AES massimo: <b>{mx}</b>.",
+    "Les {n} machines les plus exposées (classées par AES)": "Le {n} macchine più esposte (ordinate per AES)",
+    "Votre périmètre": "Il Suo perimetro",
+    "Lire l'AES": "Come leggere l'AES",
+    "Plus le score est élevé, plus la machine est exposée : en dessous de 350 l'exposition est faible, de 350 à 649 elle est moyenne, à partir de 650 elle est élevée.": "Più il punteggio è alto, più la macchina è esposta: sotto 350 l'esposizione è bassa, da 350 a 649 è media, da 650 in su è alta.",
+    "<b>Réduire l'exposition globale</b> : le Cyber Exposure Score du périmètre est de {aes} ({niveau}) ; il baisse en corrigeant d'abord les machines dont l'AES est le plus élevé.": "<b>Ridurre l'esposizione globale</b>: il Cyber Exposure Score del perimetro è {aes} ({niveau}); scende correggendo prima le macchine con l'AES più alto."
+  }
+}

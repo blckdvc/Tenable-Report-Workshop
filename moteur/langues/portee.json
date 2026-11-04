@@ -1,0 +1,35 @@
+{
+ "en": {
+  "Listes d'actifs : {liste}": "Asset lists: {liste}",
+  "Tags : {liste}": "Tags: {liste}",
+  "Volumétrie": "Volume",
+  "Périmètre précédent": "Previous scope",
+  "Périmètre récent": "Recent scope",
+  "non précisé": "not specified",
+  "Sélection du périmètre invalide.": "Invalid scope selection.",
+  "Les deux exports n'ont pas le même périmètre : la comparaison porte sur des machines différentes.": "The two exports do not have the same scope: the comparison covers different machines.",
+  "Les filtres de tags ont été refusés par Vulnerability Management : {err}": "The tag filters were rejected by Vulnerability Management: {err}"
+ },
+ "es": {
+  "Listes d'actifs : {liste}": "Listas de activos: {liste}",
+  "Tags : {liste}": "Etiquetas: {liste}",
+  "Volumétrie": "Volumetría",
+  "Périmètre précédent": "Alcance anterior",
+  "Périmètre récent": "Alcance reciente",
+  "non précisé": "no indicado",
+  "Sélection du périmètre invalide.": "Selección de alcance no válida.",
+  "Les deux exports n'ont pas le même périmètre : la comparaison porte sur des machines différentes.": "Las dos exportaciones no tienen el mismo alcance: la comparación abarca máquinas distintas.",
+  "Les filtres de tags ont été refusés par Vulnerability Management : {err}": "Vulnerability Management rechazó los filtros de etiquetas: {err}"
+ },
+ "it": {
+  "Listes d'actifs : {liste}": "Elenchi di asset: {liste}",
+  "Tags : {liste}": "Tag: {liste}",
+  "Volumétrie": "Volumetria",
+  "Périmètre précédent": "Perimetro precedente",
+  "Périmètre récent": "Perimetro recente",
+  "non précisé": "non indicato",
+  "Sélection du périmètre invalide.": "Selezione del perimetro non valida.",
+  "Les deux exports n'ont pas le même périmètre : la comparaison porte sur des machines différentes.": "I due export non hanno lo stesso perimetro: il confronto riguarda macchine diverse.",
+  "Les filtres de tags ont été refusés par Vulnerability Management : {err}": "I filtri dei tag sono stati rifiutati da Vulnerability Management: {err}"
+ }
+}

@@ -1,0 +1,17 @@
+{
+ "Voir un exemple": "Vedi un esempio",
+ "Génération de l'exemple…": "Generazione dell'esempio…",
+ "Exemple avec des données fictives, habillage du profil « {profil} »": "Esempio con dati fittizi e personalizzazione grafica del profilo «{profil}»",
+ "Ouvrir le classeur d'exemple": "Apri la cartella di lavoro di esempio",
+ "Ouvrir le PDF d'exemple": "Apri il PDF di esempio",
+ "Page {n}": "Pagina {n}",
+ "Feuille « {nom} »": "Foglio «{nom}»",
+ "{n} / {total}": "{n} / {total}",
+ "Fermer": "Chiudi",
+ "Pages du rapport": "Pagine del report",
+ "Page précédente": "Pagina precedente",
+ "Page suivante": "Pagina successiva",
+ "Données fictives : le contenu réel dépendra de votre export.": "Dati fittizi: il contenuto reale dipenderà dal Suo export.",
+ "Ouvrir le fichier d'exemple": "Apri il file di esempio",
+ "Cliquer pour agrandir ou réduire": "Fare clic per ingrandire o ridurre"
+}
