@@ -212,5 +212,12 @@
  "Utiliser pour cette génération": "Usa per questa generazione",
  "Enregistrer dans le profil": "Salva nel profilo",
  "Listes d'actifs (identifiants)": "Elenchi di asset (identificativi)",
- "Journal de la récupération": "Registro del recupero"
+ "Journal de la récupération": "Registro del recupero",
+ "Période des détections": "Periodo delle rilevazioni",
+ "30 derniers jours (défaut de Tenable)": "Ultimi 30 giorni (predefinito di Tenable)",
+ "90 derniers jours": "Ultimi 90 giorni",
+ "180 derniers jours": "Ultimi 180 giorni",
+ "365 derniers jours": "Ultimi 365 giorni",
+ "Toute la période": "Intero periodo",
+ "Une machine qui n'a pas été rescannée pendant cette période n'apparaît pas dans l'export.": "Una macchina non riscansionata in questo periodo non compare nell'esportazione."
 }

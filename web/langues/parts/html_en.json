@@ -212,5 +212,12 @@
  "Utiliser pour cette génération": "Use for this report",
  "Enregistrer dans le profil": "Save in the profile",
  "Listes d'actifs (identifiants)": "Asset lists (IDs)",
- "Journal de la récupération": "Retrieval log"
+ "Journal de la récupération": "Retrieval log",
+ "Période des détections": "Detection period",
+ "30 derniers jours (défaut de Tenable)": "Last 30 days (Tenable default)",
+ "90 derniers jours": "Last 90 days",
+ "180 derniers jours": "Last 180 days",
+ "365 derniers jours": "Last 365 days",
+ "Toute la période": "Whole period",
+ "Une machine qui n'a pas été rescannée pendant cette période n'apparaît pas dans l'export.": "A machine that has not been rescanned during this period does not appear in the export."
 }

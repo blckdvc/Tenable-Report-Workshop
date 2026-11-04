@@ -178,5 +178,7 @@
  "Périmètre appliqué à cette génération.": "Perimetro applicato a questa generazione.",
  "Périmètre enregistré dans le profil.": "Perimetro salvato nel profilo.",
  "Attention : les deux exports n'ont pas le même périmètre.": "Attenzione: i due export non hanno lo stesso perimetro.",
- "valeur": "valore|valori"
+ "valeur": "valore|valori",
+ "toute la période": "intero periodo",
+ "vues depuis {n} jours": "rilevate negli ultimi {n} giorni"
 }

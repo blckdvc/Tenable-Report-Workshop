@@ -178,5 +178,7 @@
  "Périmètre appliqué à cette génération.": "Alcance aplicado a esta generación.",
  "Périmètre enregistré dans le profil.": "Alcance guardado en el perfil.",
  "Attention : les deux exports n'ont pas le même périmètre.": "Atención: las dos exportaciones no tienen el mismo alcance.",
- "valeur": "valor|valores"
+ "valeur": "valor|valores",
+ "toute la période": "todo el periodo",
+ "vues depuis {n} jours": "vistas en los últimos {n} días"
 }

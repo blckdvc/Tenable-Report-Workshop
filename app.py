@@ -298,6 +298,8 @@ def api_profil_maj(pid):
                 return erreur(tr("Les identifiants Security Center sont numériques (séparés par des virgules)."))
         if src["produit"] not in ("sc", "vm"):
             return erreur(tr("Produit inconnu."))
+        if src["periode"] not in VMC.PERIODES:
+            return erreur(tr("Période inconnue."))
         if not re.fullmatch(r"[0-9a-fA-F:.,/; -]*", src["cidr"]) or src["acr_aes"] not in ("0", "1"):
             return erreur(tr("Plage d'adresses invalide (exemple : 10.0.0.0/24, 10.1.0.0/16)."))
         if src["outil"] not in SC.OUTILS or src["source_type"] not in ("cumulative", "patched"):
