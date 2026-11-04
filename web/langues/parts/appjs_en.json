@@ -180,5 +180,8 @@
  "Attention : les deux exports n'ont pas le même périmètre.": "Warning: the two exports do not have the same scope.",
  "valeur": "value|values",
  "toute la période": "whole period",
- "vues depuis {n} jours": "seen in the last {n} days"
+ "vues depuis {n} jours": "seen in the last {n} days",
+ "Données issues de Tenable Vulnerability Management": "Data from Tenable Vulnerability Management",
+ "Périmètre : {p}": "Scope: {p}",
+ "Données issues de Tenable Security Center": "Data from Tenable Security Center"
 }

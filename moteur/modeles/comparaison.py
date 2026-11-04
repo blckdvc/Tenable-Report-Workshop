@@ -75,7 +75,8 @@ def generer(avant, apres, habillage, sortie):
             meta.append((tr("Périmètre"), cp))
         else:
             meta += [(tr("Périmètre précédent"), cp or tr("non précisé")), (tr("Périmètre récent"), ca or tr("non précisé"))]
-    d = DocumentPDF(sortie, habillage, tr(NOM), meta)
+    d = DocumentPDF(sortie, habillage, tr(NOM), meta, produit=apres.produit,
+                    portee=ca if P.identique(getattr(avant, "portee", None), getattr(apres, "portee", None)) else "")
     G.compare_severity(c["sev_avant"], c["sev_apres"], d.chemin_tmp("cmp_sev.png"), accent=d.accent_hex)
     lignes = sorted([m for m in c["machines"] if m["delta"] and m["statut"] != "non réanalysée"], key=lambda m: -abs(m["delta"]))[:12]
     if lignes:

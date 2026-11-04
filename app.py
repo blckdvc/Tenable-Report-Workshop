@@ -400,12 +400,13 @@ def api_export_ajouter():
     chemin = os.path.join(SESSION, f"{eid}.csv")
     f.save(chemin)
     try:
-        R.read_export(chemin)
+        df = R.read_export(chemin)
     except R.ErreurDonnees:
         os.remove(chemin)
         raise
-    EXPORTS[eid] = {"chemin": chemin, "nom": os.path.basename(f.filename), "taille": os.path.getsize(chemin)}
-    return jsonify({"id": eid, "nom": EXPORTS[eid]["nom"], "taille": EXPORTS[eid]["taille"]})
+    EXPORTS[eid] = {"chemin": chemin, "nom": os.path.basename(f.filename), "taille": os.path.getsize(chemin),
+                    "portee": df.attrs.get("portee")}         # export récupéré par l'API puis rechargé : son périmètre
+    return jsonify({"id": eid, "nom": EXPORTS[eid]["nom"], "taille": EXPORTS[eid]["taille"], "portee": EXPORTS[eid]["portee"]})
 
 
 def _export(eid):
@@ -614,6 +615,7 @@ def api_sc_exporter():
     try:
         mod = MODELES.get(d.get("modele") or "", {})
         res = client.exporter_csv(p["source"], chemin, perimetre_pour(mod, p["perimetre"]).get("severites"), journal=journal)
+        PT.inscrire(chemin, PT.portee(p["source"]))              # le périmètre suit le fichier
         if journal:
             journal(tr("Contrôle du fichier obtenu."))
         R.read_export(chemin)                                    # même contrôle que pour un fichier déposé

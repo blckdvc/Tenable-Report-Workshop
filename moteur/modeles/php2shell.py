@@ -433,7 +433,7 @@ def sans_exposition(d, an):
 def generer(an, habillage, sortie):
     lignes = machines_exposees(an)
     cs = [c for m in lignes for c in m["cs"]]
-    d = DocumentPDF(sortie, habillage, tr(NOM), meta(an, lignes))
+    d = DocumentPDF(sortie, habillage, tr(NOM), meta(an, lignes), produit=an.produit, portee=P.libelle(an.portee))
     story = guide(d, an, lignes) + [PageBreak()] + chap_situation(d) + [PageBreak()]
     if lignes:
         story += chap_exposition(d, an, lignes, cs) + [PageBreak()] + chap_plan(d, an, lignes) + [PageBreak()] + chap_mesures(d) + [PageBreak()] + \

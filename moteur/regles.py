@@ -242,6 +242,8 @@ def read_export(path):
         df = VM.convertir(df, fmt)
     api_vm = "Source" in df.columns and df["Source"].astype(str).str.lower().eq("vm").any()   # CSV écrit par le client de l'API
     df.attrs["produit"] = "vm" if (fmt or api_vm) else "sc"
+    from . import portee as PT
+    df.attrs["portee"] = PT.lire(df)                          # périmètre inscrit par la récupération via l'API
     missing = [c for c in REQUIRED if c not in df.columns]
     if missing:
         raise ErreurDonnees(tr("Colonnes absentes de l'export : {colonnes}. Exportez la vue « Vulnerability List » de Tenable Security Center, ou la liste des vulnérabilités de Tenable Vulnerability Management, au format CSV.",
