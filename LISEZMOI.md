@@ -1,8 +1,8 @@
 # Atelier de rapports Tenable
 
-Application locale pour transformer un export CSV de Tenable Security Center en rapports de remédiation en français, habillés aux couleurs du client.
+Application locale pour transformer les vulnérabilités de Tenable Security Center ou de Tenable Vulnerability Management (export CSV ou API) en rapports de remédiation habillés aux couleurs du client, en français, anglais, espagnol ou italien.
 
-L'application tourne sur votre poste et s'ouvre dans votre navigateur. Elle n'écoute que sur 127.0.0.1. Les exports des clients ne quittent votre machine que dans deux cas, tous deux à votre initiative : une interrogation de Security Center (l'export vient alors de lui) et l'envoi d'un rapport par courriel via le serveur SMTP que vous avez configuré.
+L'application tourne sur votre poste et s'ouvre dans votre navigateur. Elle n'écoute que sur 127.0.0.1. Les exports des clients ne quittent votre machine que dans deux cas, tous deux à votre initiative : une interrogation de Security Center ou de Vulnerability Management (l'export vient alors de lui) et l'envoi d'un rapport par courriel via le serveur SMTP que vous avez configuré.
 
 ## Démarrer
 
@@ -30,11 +30,11 @@ Sous Windows, remplacez `.venv/bin/python` par `.venv\Scripts\python.exe`.
 ## Utilisation
 
 1. **Choisissez le profil client** en haut à droite, ou créez-en un avec « Gérer ».
-2. **Onglet Générer.** Déposez l'export CSV, choisissez le modèle, puis cliquez sur « Générer le rapport ». Les rapports PDF s'ouvrent dans un nouvel onglet. Tous les rapports sont enregistrés dans le dossier `rapports/`.
+2. **Onglet Générer.** Déposez l'export CSV, ou récupérez-le par l'API, choisissez le modèle, puis cliquez sur « Générer le rapport ». Les rapports PDF s'ouvrent dans un nouvel onglet. Tous les rapports sont enregistrés dans le dossier `rapports/`.
 3. **Onglet Habillage.** Titre, sous-titre, client, mention de diffusion (avec une case pour l'afficher aussi, en badge, dans l'en-tête des pages intérieures ; elle quitte alors le pied de page), filigrane (texte en diagonale sur les pages des PDF, par exemple « Diffusion restreinte » ou « Confidentiel », avec une case pour l'exclure de la page de couverture ; absent des fichiers Excel), pied de page, couleur principale et logo. La couverture affichée à gauche se met à jour en direct. Dès qu'un filigrane ou une mention sur les pages intérieures est défini (modèles PDF seulement), des onglets sous l'aperçu montrent deux pages intérieures fictives (synthèse et plan d'action).
 4. **Onglet Périmètre.** Sévérités retenues, nombre de solutions du plan d'action, machines à inclure ou à exclure (adresse IP, réseau CIDR ou nom avec jokers).
 5. **Onglet Règles.** Consultez, testez et modifiez les règles qui traduisent les intitulés Tenable en actions.
-6. **Onglet Configuration.** Connexion et requête Security Center, serveur SMTP et message par défaut (voir plus bas).
+6. **Onglet Configuration.** Produit Tenable du profil, connexion et requête Security Center ou Vulnerability Management, serveur SMTP et message par défaut (voir plus bas).
 
 L'habillage et le périmètre sont propres à chaque profil client. Les règles sont communes à tous les profils.
 
@@ -46,7 +46,9 @@ En alternative au fichier CSV, l'application peut interroger Security Center et 
 2. Même section, carte « Requête d'export » (propre à chaque profil client) : dépôts, liste d'actifs ou requête enregistrée, et au besoin des filtres supplémentaires au format JSON. Le bouton « Afficher les dépôts, listes et requêtes disponibles » permet de les choisir d'un clic. Les sévérités viennent de l'onglet Périmètre. « Voir la requête envoyée à l'API » montre le corps JSON exact de l'appel `POST /rest/analysis`.
 3. Onglet **Générer**, étape 1 : choisissez « Security Center (API) », puis « Récupérer depuis Security Center ». Le lien « Modifier la requête » mène à la configuration. L'aperçu s'affiche comme pour un fichier.
 
-Chaque récupération est conservée dans `exports_security_center/` (Security Center) ou `exports_vulnerability_management/` (Vulnerability Management), un CSV horodaté par profil. Ces fichiers servent de point de départ pour les comparaisons : déposez celui du mois dernier comme « export précédent », et récupérez l'export récent via l'API.
+Pendant la récupération, l'encart **Journal de la récupération** s'ouvre sous le bouton et montre chaque étape en direct : pages reçues pour Security Center ; export créé, état, blocs téléchargés, export des assets et conversion pour Vulnerability Management. En cas d'échec, la dernière ligne en donne la cause.
+
+Chaque récupération est conservée dans `exports_security_center/` (Security Center) ou `exports_vulnerability_management/` (Vulnerability Management), un CSV horodaté par profil. Le périmètre choisi y est inscrit (colonne `Scope`) : un rapport produit plus tard à partir de ce fichier l'affiche toujours. Ces fichiers servent de point de départ pour les comparaisons : déposez celui du mois dernier comme « export précédent », et récupérez l'export récent via l'API.
 
 Les clés sont enregistrées dans `config.json`, accessible à votre utilisateur seul. Vous pouvez plutôt les fournir par les variables d'environnement `TENABLE_SC_URL`, `TENABLE_SC_ACCESS_KEY` et `TENABLE_SC_SECRET_KEY`, qui l'emportent. Ne diffusez pas `config.json`.
 
@@ -54,7 +56,13 @@ Les clés sont enregistrées dans `config.json`, accessible à votre utilisateur
 
 Un CSV de Tenable Vulnerability Management (export des vulnérabilités, colonnes `asset.*` et `definition.*`) se dépose comme un CSV de Security Center : le format est reconnu automatiquement. Il ne contient ni ACR, ni AES, ni date de dernière observation, et une machine est identifiée par sa première adresse IPv4 (le même poste peut exister sous plusieurs identifiants d'asset).
 
-Pour récupérer les données par l'API, choisissez le produit du profil dans **Configuration > Produit Tenable**, puis renseignez **Vulnerability Management** (adresse, clés d'API, ou variables `TENABLE_VM_URL`, `TENABLE_VM_ACCESS_KEY`, `TENABLE_VM_SECRET_KEY`). La requête du profil permet de limiter à une plage d'adresses, de choisir la **période des détections** et d'ajouter l'ACR et l'AES (export des assets, ou à défaut liste des assets du poste de travail). Sans date, l'API ne renvoie que les vulnérabilités vues dans les 30 derniers jours : une machine non rescannée depuis disparaît de l'export. Choisissez 90, 180 ou 365 jours, ou toute la période, pour la retrouver. Les vulnérabilités ouvertes (open et reopened) sont lues par l'export asynchrone de l'API ; en ligne de commande, `--api` (ou `--securitycenter`) utilise le produit du profil. Le code lit les deux modèles de champs connus (`plugin.*` ou `definition.*`) ; le client a été éprouvé sur un faux serveur, pas sur un locataire réel : en cas de champ non reconnu, le message d'erreur liste ceux reçus.
+Pour récupérer les données par l'API, choisissez le produit du profil dans **Configuration > Produit Tenable**, puis renseignez **Vulnerability Management** (adresse, `https://cloud.tenable.com` par défaut, et clés d'API, ou variables `TENABLE_VM_URL`, `TENABLE_VM_ACCESS_KEY`, `TENABLE_VM_SECRET_KEY`). La requête du profil règle :
+
+- la **période des détections** : 30 jours (défaut de Tenable), 90, 180, 365 jours ou toute la période. Sans date, l'API ne renvoie que les vulnérabilités vues dans les 30 derniers jours : une machine non rescannée depuis disparaît de l'export. Élargissez la période pour la retrouver ;
+- une **plage d'adresses** facultative ;
+- l'**ACR et l'AES** : ils viennent de l'export des assets (`POST /assets/v2/export`, suivi sous `/assets/export/{uuid}`). Si cet export est refusé, l'application lit les notes dans la liste des assets du poste de travail, puis essaie l'export des assets v1.
+
+Les vulnérabilités ouvertes (open et reopened) sont lues par l'export asynchrone de l'API ; en ligne de commande, `--api` (ou `--securitycenter`) utilise le produit du profil. Le code lit les deux modèles de champs connus (`plugin.*` ou `definition.*`) ; en cas de champ non reconnu, le message d'erreur liste ceux reçus. Le client a été éprouvé sur un locataire réel : export des vulnérabilités, tags, période et export des assets.
 
 ### Choisir le périmètre : listes d'actifs (Security Center) ou tags (Vulnerability Management)
 
@@ -65,9 +73,9 @@ Avec une récupération par l'API, l'étape 1 de l'onglet **Générer** affiche 
 
 Un champ de filtre aide à retrouver un élément dans une longue liste, et le nombre de machines de la sélection est affiché avant de lancer l'export (pour Security Center : les machines qui portent au moins une vulnérabilité). Deux boutons : **Utiliser pour cette génération** (le profil n'est pas modifié) ou **Enregistrer dans le profil** (la sélection devient le défaut de ce client). Les filtres « machines à inclure / exclure » de l'onglet Périmètre continuent de s'appliquer par-dessus. Avec une requête enregistrée Security Center, la sélection n'a pas d'effet (la requête remplace les filtres).
 
-La sélection est reprise en **couverture** : le champ « Périmètre » indique les listes ou les tags retenus (par exemple « Listes d'actifs : Serveurs Paris, DMZ »), et une ligne « Volumétrie » donne le nombre de machines et de vulnérabilités. Elle figure aussi dans l'onglet Paramètres du plan Excel. Pour une comparaison, la couverture rappelle le périmètre de chaque export s'il diffère, et l'application avertit quand les deux exports n'ont pas le même périmètre.
+La sélection est reprise en **couverture** : le champ « Périmètre » indique les listes ou les tags retenus (par exemple « Listes d'actifs : Serveurs Paris, DMZ »), et une ligne « Volumétrie » donne le nombre de machines et de vulnérabilités. Elle figure aussi dans le **pied de page** de chaque page des PDF (par exemple « Données issues de Tenable Vulnerability Management · Périmètre : Tags : Asset Owner = ludo ») et dans l'onglet Paramètres du plan Excel. Elle est inscrite dans le CSV récupéré : elle suit le fichier, même rechargé à la main plus tard. Pour une comparaison, la couverture rappelle le périmètre de chaque export s'il diffère, et l'application avertit quand les deux exports n'ont pas le même périmètre.
 
-En ligne de commande, le périmètre enregistré dans le profil s'applique (`--api`). Deux points à vérifier sur un environnement réel : la combinaison de plusieurs listes d'actifs (filtre `asset` en union) et les filtres de tags de l'export (`tag.<catégorie>`) n'ont été éprouvés que sur un faux serveur. « Voir la requête envoyée à l'API » montre le corps exact envoyé ; si Vulnerability Management refuse les filtres de tags, l'application s'arrête avec un message plutôt que d'ignorer le périmètre.
+En ligne de commande, le périmètre enregistré dans le profil s'applique (`--api`). Avec Vulnerability Management, si le filtre de tags de l'export ne renvoie rien ou est refusé, l'application cherche dans le poste de travail les assets qui portent ces tags, puis ne garde que leurs vulnérabilités ; le journal indique la voie suivie. Si aucun asset tagué n'a de vulnérabilité dans la période, le message propose d'élargir la période des détections. La combinaison de plusieurs listes d'actifs Security Center (filtre `asset` en union) n'a été éprouvée que sur un faux serveur. « Voir la requête envoyée à l'API » montre le corps exact envoyé.
 
 ### Envoyer un rapport par courriel (SMTP)
 
@@ -88,7 +96,7 @@ Colonnes nécessaires : `Plugin`, `Plugin Name`, `Severity`, `IP Address`. Colon
 
 | Modèle | Format | Contenu |
 |---|---|---|
-| Plan de remédiation complet | PDF | Synthèse graphique, plan d'action, détail par solution avec les machines concernées, guide par machine |
+| Plan de remédiation complet | PDF | Synthèse graphique, plan d'action, détail par solution avec les machines concernées, guide par machine. Seules les solutions du plan d'action (nombre réglé dans l'onglet Périmètre) sont présentées |
 | Synthèse exécutive | PDF | 3 pages pour la direction : indicateurs, graphiques, 10 actions prioritaires, recommandations |
 | Fiches par machine | PDF | Sommaire puis une fiche autonome par machine : actions à cocher, vulnérabilités corrigées, cadre de suivi de l'intervention |
 | Comparaison de deux exports | PDF | Évolution du score de risque, vulnérabilités corrigées, nouvelles et persistantes, avancement par solution et par machine |
@@ -105,7 +113,9 @@ Les règles transforment les intitulés Tenable en actions regroupées. Elles so
 - Windows ;
 - les éditeurs qui publient des avis : Cisco, Fortinet, Palo Alto, Juniper, F5, Check Point, Citrix, SAP, IBM ;
 - les systèmes industriels ;
-- les configurations courantes : TLS, SSH, SMB, SNMP, etc. ;
+- les protocoles industriels exposés (Modbus, DNP3, BACnet…) ;
+- les configurations courantes : TLS, certificats, SSH, SMB, SNMP, DNS, WPAD, identifiants transmis en clair, Secure Boot, etc. ;
+- les détections passives et d'incident : échecs d'authentification RADIUS, processus suspects ;
 - des règles génériques, par exemple « Produit < version » qui donne « Installer Produit en version X ou ultérieure ».
 
 L'onglet Règles permet de :
@@ -116,7 +126,7 @@ L'onglet Règles permet de :
 - modifier, réordonner ou supprimer des règles ;
 - importer ou exporter le fichier, pour l'éditer dans Excel (séparateur point-virgule).
 
-La première règle qui correspond l'emporte. Chaque enregistrement conserve l'ancien fichier sous le nom `regles_fr.csv.bak`.
+La première règle qui correspond l'emporte. Chaque enregistrement conserve les anciens fichiers à côté des nouveaux, avec l'extension `.bak`.
 
 Champs utilisables dans le titre et l'action d'une règle :
 
@@ -124,10 +134,10 @@ Champs utilisables dans le titre et l'action d'une règle :
 |---|---|
 | `{produit}`, `{kb}`, `{os}`, `{ms}`, `{famille}` | Valeurs extraites de l'intitulé par les groupes nommés du motif |
 | `{paquets}`, `{avis}`, `{notes}`, `{bulletins}`, `{cves}` | Listes cumulées sur toutes les vulnérabilités de la solution |
-| `{cible}` | « en version X ou ultérieure », d'après les intitulés « Produit < X » |
+| `{cible}` | « en version X ou ultérieure », d'après les intitulés « Produit < X » ou « Produit X (GHSA-… / CVE-…) » |
 | `{precision}` | « (version X ou ultérieure) » si une version est citée, sinon vide |
 | `{branches}` | Versions correctives des autres branches citées dans l'intitulé |
-| `{ref_avis}` | « (avis : …) » si l'intitulé cite des références d'avis éditeur |
+| `{ref_avis}` | « (avis : …) » si l'intitulé cite des références d'avis éditeur (y compris GHSA) |
 | `{mois}` | Mois de publication le plus récent, en français |
 | `{redemarrage}` | Phrase de redémarrage quand le noyau est concerné |
 
@@ -154,8 +164,9 @@ Modèles disponibles : `complet`, `synthese`, `fiches`, `comparaison`, `plan_exc
 |---|---|
 | `app.py` | Serveur local et interface |
 | `generer.py` | Génération en ligne de commande |
-| `moteur/` | Analyse des exports, règles, graphiques et modèles de rapport (`moteur/modeles/`), client Security Center (`securitycenter.py`), envoi SMTP (`courriel.py`) et configuration (`config.py`) |
-| `config.json` | Connexion Security Center et serveur SMTP (créé à l'enregistrement, droits restreints) |
+| `moteur/` | Analyse des exports, règles, graphiques et modèles de rapport (`moteur/modeles/`), clients Security Center (`securitycenter.py`) et Vulnerability Management (`vulnmanagement.py`), périmètre (`portee.py`), envoi SMTP (`courriel.py`) et configuration (`config.py`) |
+| `config.json` | Connexions Security Center et Vulnerability Management, serveur SMTP (créé à l'enregistrement, droits restreints) |
+| `outils/guide/` | Script qui produit le guide `Report_Workshop_User_Guide.pdf`, avec ses captures d'écran |
 | `exports_security_center/` | Exports récupérés via l'API de Security Center, conservés pour les comparaisons |
 | `exports_vulnerability_management/` | Exports récupérés via l'API de Vulnerability Management, conservés pour les comparaisons |
 | `web/` | Interface (HTML, CSS, JavaScript ; aucune ressource externe) |
@@ -173,7 +184,7 @@ Les blocs de mise en page communs (couverture, tableaux, pastilles de sévérit�
 
 ## ACR et AES
 
-Si l'export contient les colonnes `ACR` (criticité de la machine, 1 à 10) et `AES` (exposition, 0 à 1 000), ou si les données viennent de l'API Security Center (champs `acrScore` et `assetExposureScore`), elles sont affichées par machine dans les rapports PDF (plan complet, fiches) et dans le classeur Excel. L'AES est la note d'une machine ; le **Cyber Exposure Score (CES)** est la note d'exposition d'un ensemble de machines, sur la même échelle (0 à 1 000) : les rapports l'estiment par la moyenne des AES des machines analysées (une machine, une voix). Les définitions de VPR, ACR, AES et CES figurent en annexe des rapports et dans la feuille « Définitions » du classeur. Sans ces colonnes, rien ne change.
+Si l'export contient les colonnes `ACR` (criticité de la machine, 1 à 10) et `AES` (exposition, 0 à 1 000), ou si les données viennent de l'API Security Center (champs `acrScore` et `assetExposureScore`) ou de l'API Vulnerability Management (export des assets), elles sont affichées par machine dans les rapports PDF (plan complet, fiches) et dans le classeur Excel. L'AES est la note d'une machine ; le **Cyber Exposure Score (CES)** est la note d'exposition d'un ensemble de machines, sur la même échelle (0 à 1 000) : les rapports l'estiment par la moyenne des AES des machines analysées (une machine, une voix). Les définitions de VPR, ACR, AES et CES figurent dans le guide de lecture des rapports et dans la feuille « Définitions » du classeur. Sans ces colonnes, rien ne change.
 
 ### Modèle « Exposition PHP2Shell »
 
@@ -181,7 +192,7 @@ Il isole dans l'export les constats qui citent CVE-2026-109618 ou CVE-2026-10961
 
 ## Langues (français, anglais, espagnol, italien)
 
-Le sélecteur à côté de la gestion des profils (drapeau) change la langue de l'interface **et** des rapports : la langue est enregistrée dans le profil, chaque client peut donc avoir la sienne. Les textes par défaut du profil (titre, pied de page, message du courriel) suivent la langue tant qu'ils n'ont pas été personnalisés.
+Le sélecteur à côté de la gestion des profils (drapeau) change la langue de l'interface **et** des rapports : la langue est enregistrée dans le profil, chaque client peut donc avoir la sienne. Les textes par défaut du profil (titre, pied de page, message du courriel) suivent la langue tant qu'ils n'ont pas été personnalisés. Le pied de page par défaut nomme aussi le produit de l'export (Security Center ou Vulnerability Management).
 
 - Interface : catalogues dans `web/langues/parts/*_<langue>.json`.
 - Rapports et messages : catalogues dans `moteur/langues/*.json` (clé = texte français).
