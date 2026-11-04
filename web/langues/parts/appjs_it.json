@@ -180,5 +180,8 @@
  "Attention : les deux exports n'ont pas le même périmètre.": "Attenzione: i due export non hanno lo stesso perimetro.",
  "valeur": "valore|valori",
  "toute la période": "intero periodo",
- "vues depuis {n} jours": "rilevate negli ultimi {n} giorni"
+ "vues depuis {n} jours": "rilevate negli ultimi {n} giorni",
+ "Données issues de Tenable Vulnerability Management": "Dati provenienti da Tenable Vulnerability Management",
+ "Périmètre : {p}": "Perimetro: {p}",
+ "Données issues de Tenable Security Center": "Dati provenienti da Tenable Security Center"
 }

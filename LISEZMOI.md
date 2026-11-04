@@ -88,7 +88,7 @@ Colonnes nécessaires : `Plugin`, `Plugin Name`, `Severity`, `IP Address`. Colon
 
 | Modèle | Format | Contenu |
 |---|---|---|
-| Plan de remédiation complet | PDF | Synthèse graphique, plan d'action, détail par solution avec les machines concernées, guide par machine, annexe |
+| Plan de remédiation complet | PDF | Synthèse graphique, plan d'action, détail par solution avec les machines concernées, guide par machine |
 | Synthèse exécutive | PDF | 3 pages pour la direction : indicateurs, graphiques, 10 actions prioritaires, recommandations |
 | Fiches par machine | PDF | Sommaire puis une fiche autonome par machine : actions à cocher, vulnérabilités corrigées, cadre de suivi de l'intervention |
 | Comparaison de deux exports | PDF | Évolution du score de risque, vulnérabilités corrigées, nouvelles et persistantes, avancement par solution et par machine |

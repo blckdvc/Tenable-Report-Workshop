@@ -2,6 +2,7 @@
 from ..i18n import tr
 from ..commun import DocumentPDF, W, esc, Paragraph, Spacer, PageBreak, pluriel, mm
 from .. import graphiques as G
+from .. import portee as P
 from .complet import chapitre_synthese, guide_lecture, meta, tableau_plan
 from ..scores import niveau_aes, source
 
@@ -41,7 +42,7 @@ def guide_synthese(d, an):
 
 
 def generer(an, habillage, sortie):
-    d = DocumentPDF(sortie, habillage, tr(NOM), meta(an))
+    d = DocumentPDF(sortie, habillage, tr(NOM), meta(an), produit=an.produit, portee=P.libelle(an.portee))
     story = [*guide_synthese(d, an), PageBreak(), *chapitre_synthese(d, an, numero="1.")]
     n = an.top                                           # même réglage « solutions du plan d'action » que les autres rapports
     crit = [s for s in an.TOP if s["maxsev"] == "Critical"]

@@ -79,7 +79,7 @@ Reports are saved in `rapports/`. Data fetched through the API is saved as times
 
 | Template | Format | Contents |
 |---|---|---|
-| Full remediation plan (`complet`) | PDF | Graphical summary, action plan, detail per action with affected machines, per-machine guide, appendix |
+| Full remediation plan (`complet`) | PDF | Graphical summary, action plan, detail per action with affected machines, per-machine guide |
 | Executive summary (`synthese`) | PDF | Three pages for management: key figures, charts, top 10 actions, recommendations |
 | Per-machine sheets (`fiches`) | PDF | One self-contained sheet per machine, with a checklist of actions and a tracking box |
 | Comparison of two exports (`comparaison`) | PDF | Risk score trend, and fixed, new and persistent vulnerabilities, by action and by machine |

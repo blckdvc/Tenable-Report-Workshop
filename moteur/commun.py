@@ -21,7 +21,7 @@ from reportlab.platypus import (BaseDocTemplate, Frame, Image, KeepTogether, Nex
 from . import charte as CH
 from . import graphiques as G
 from .regles import SEV_FR as FR
-from .i18n import tr, plur, date_longue
+from .i18n import tr, plur, date_longue, traductions
 
 RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 POLICES = os.path.join(RACINE, "polices")
@@ -54,6 +54,19 @@ MARGE = 18 * mm
 W = A4[0] - 2 * MARGE
 
 MOIS = "janvier février mars avril mai juin juillet août septembre octobre novembre décembre".split()
+
+PIED_VM = "Données issues de Tenable Vulnerability Management"      # pied par défaut quand l'export vient de Vulnerability Management
+
+
+def _ajuster(texte, police, corps, largeur):
+    """Texte raccourci (avec « … ») pour tenir dans `largeur` points : le numéro de page reste lisible."""
+    from reportlab.pdfbase.pdfmetrics import stringWidth
+    if stringWidth(texte, police, corps) <= largeur:
+        return texte
+    while texte and stringWidth(texte + "…", police, corps) > largeur:
+        texte = texte[:-1]
+    return texte.rstrip(" ·,;") + "…"
+
 
 HABILLAGE_DEFAUT = {
     "titre": "Rapport de vulnérabilités",
@@ -161,9 +174,14 @@ def _court(v, n=95):
 class DocumentPDF:
     """Un rapport PDF habillé : couverture, en-tête et pied de page, styles et blocs communs."""
 
-    def __init__(self, sortie, habillage, nom_modele, meta_couverture):
+    def __init__(self, sortie, habillage, nom_modele, meta_couverture, produit=None, portee=None):
+        """produit (« sc » ou « vm ») et portee (texte du périmètre) complètent le pied de page : le pied par défaut
+        nomme le bon produit Tenable, et le périmètre suit sur chaque page."""
         self.sortie = sortie
         self.h = {**HABILLAGE_DEFAUT, **{k: v for k, v in (habillage or {}).items() if v not in (None,)}}
+        if produit == "vm" and self.h.get("pied") in traductions(HABILLAGE_DEFAUT["pied"]):
+            self.h["pied"] = PIED_VM                                # pied par défaut : il nomme le produit de l'export
+        self.portee = portee or ""
         for k in ("titre", "pied", "mention", "filigrane"):      # textes par défaut et mentions usuelles : traduits à l'usage
             if isinstance(self.h.get(k), str) and self.h[k]:
                 self.h[k] = tr(self.h[k])
@@ -350,10 +368,9 @@ class DocumentPDF:
         c.setLineWidth(0.5)
         c.line(MARGE, ph - 25 * mm, pw - MARGE, ph - 25 * mm)
         c.line(MARGE, 13 * mm, pw - MARGE, 13 * mm)
-        pied = self.h.get("pied") or ""
-        if self.h.get("mention") and not badge:                        # avec le badge d'en-tête, plus de mention en pied
-            pied = (self.h["mention"] + " · " + pied) if pied else self.h["mention"]
-        c.drawString(MARGE, 8.5 * mm, pied[:120])
+        parties = [self.h["mention"]] if self.h.get("mention") and not badge else []   # avec le badge d'en-tête, plus de mention en pied
+        parties += [x for x in (self.h.get("pied"), tr("Périmètre : {p}", p=self.portee) if self.portee else "") if x]
+        c.drawString(MARGE, 8.5 * mm, _ajuster(" · ".join(parties), "Inter-Regular", 8, W - 24 * mm))
         c.restoreState()
 
     def construire(self, story):

@@ -71,6 +71,7 @@ class Analyse:
         self.perimetre = {**PERIMETRE_DEFAUT, **(perimetre or {})}
         self.regles = regles if regles is not None else R.load_rules()
         brut = R.read_export(chemin)
+        self.portee = portee or brut.attrs.get("portee")      # sinon, celle inscrite dans le fichier
         self.n_info = int((brut["Severity"] == "Info").sum())
         prep = R.preparer(brut)
         self.produit = brut.attrs.get("produit", "sc")                # « sc » : Security Center, « vm » : Vulnerability Management

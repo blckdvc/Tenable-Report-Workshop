@@ -68,6 +68,13 @@ def set_langue(code):
     return _ctx.code
 
 
+def traductions(texte):
+    """Le texte français et toutes ses traductions (pour reconnaître un texte par défaut, quelle que soit sa langue)."""
+    if not _catalogues:
+        recharger()
+    return {texte} | {cat[texte] for cat in _catalogues.values() if texte in cat}
+
+
 def tr(texte, **kw):
     """Traduit `texte` (français) dans la langue courante, puis remplace les {variables}."""
     if not _catalogues:

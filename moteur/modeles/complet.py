@@ -1,4 +1,6 @@
-"""Rapport complet : synthèse, plan d'action, détail par solution, guide par machine, annexe."""
+"""Rapport complet : synthèse, plan d'action, détail par solution, guide par machine.
+
+Seules les solutions du plan d'action (réglage « nombre de solutions » du périmètre) sont présentées."""
 from .. import graphiques as G
 from .. import portee as P
 from ..analyse import libelle_machine
@@ -132,9 +134,8 @@ def bloc_solution(d, s, an):
     return [CondPageBreak(80 * mm), KeepTogether(bloc), tab, Spacer(1, 4)]
 
 
-def bloc_machine(d, an, h, sols, toutes=False):
-    """Liste à cocher des solutions d'une machine (sols : solutions retenues pour cette machine)."""
-    autres = [s for s in h["sols"] if s not in sols]
+def bloc_machine(d, an, h, sols):
+    """Liste à cocher des solutions d'une machine (sols : solutions du plan d'action qui la concernent)."""
     titre = Paragraph(f'{esc(h["dns"] or h["ip"])} <font name="Inter-Regular" color="#5A5A5A" size="9">  {h["ip"]}</font>',
                       st("hh", fontName="Inter-SemiBold", fontSize=10.5, leading=14))
     sous = Paragraph(tr("{vulns} ({sev}) · score de risque {score} · {scores}{actions} à mener",
@@ -150,8 +151,6 @@ def bloc_machine(d, an, h, sols, toutes=False):
                      Paragraph(str(hr["vulns"]), d.CELLR), d.pastille(hr["maxsev"])])
     t = d.tableau(rows, [10 * mm, 9 * mm, W - 63 * mm, 22 * mm, 22 * mm])
     bloc = [Spacer(1, 2), titre, sous, Spacer(1, 4), t]
-    if autres and not toutes:
-        bloc += [Spacer(1, 3), Paragraph(tr("Autres actions, de moindre priorité : ") + "; ".join(esc(o["title"]) for o in autres) + ".", d.SMALL)]
     if len(rows) <= 9:
         return [CondPageBreak(55 * mm), KeepTogether(bloc), Spacer(1, 12)]
     return [CondPageBreak(55 * mm), KeepTogether(bloc[:4]), *bloc[4:], Spacer(1, 12)]
@@ -217,7 +216,7 @@ def guide_lecture(d, an):
 
 
 def generer(an, habillage, sortie):
-    d = DocumentPDF(sortie, habillage, tr(NOM), meta(an))
+    d = DocumentPDF(sortie, habillage, tr(NOM), meta(an), produit=an.produit, portee=P.libelle(an.portee))
     story = guide_lecture(d, an)
     story += [PageBreak(), *chapitre_synthese(d, an)]
     story += [PageBreak(), Paragraph(tr("2. Plan d'action : les {n} solutions prioritaires", n=an.top), d.H1),
@@ -226,9 +225,7 @@ def generer(an, habillage, sortie):
                            "solution avec la liste des machines sur lesquelles l'appliquer ; le chapitre 4 reprend les mêmes actions "
                            "machine par machine."), d.LEAD),
               tableau_plan(d, an.TOP), Spacer(1, 4),
-              Paragraph(tr("Ces {n} solutions réduisent le risque mesuré de {pct}.", n=an.top, pct=pct(an.cum_at(an.top)))
-                        + (tr(" Les {n} actions restantes, de moindre priorité, sont listées en annexe.", n=len(an.RESTE)) if an.RESTE else ""),
-                        d.SMALL)]
+              Paragraph(tr("Ces {n} solutions réduisent le risque mesuré de {pct}.", n=an.top, pct=pct(an.cum_at(an.top))), d.SMALL)]
     story += [PageBreak(), Paragraph(tr("3. Détail par solution : machines concernées"), d.H1),
               Paragraph(tr("Pour chaque solution : l'action à mener, les vulnérabilités qu'elle corrige et les machines sur lesquelles "
                            "l'appliquer, de la plus exposée à la moins exposée") + (tr(" (AES décroissant).") if an.a_aes else "."), d.LEAD)]
@@ -243,14 +240,4 @@ def generer(an, habillage, sortie):
         mine = [s for s in h["sols"] if s["key"] in an.cles_top]
         if mine:
             story += bloc_machine(d, an, h, mine)
-    if an.RESTE:
-        story += [PageBreak(), Paragraph(tr("Annexe"), d.H1)]
-        rows = [d.entete_tableau(tr("N°"), tr("Solution"), tr("Machines"), tr("Risque éliminé"))]
-        for s in an.RESTE:
-            machines = ", ".join((r.dns or r.host) for r in s["hosts"].itertuples())
-            rows.append([Paragraph(str(s["rank"]), d.CELLC),
-                         Paragraph(f'<font name="Inter-Medium">{esc(s["title"])}</font><br/><font size="7.6" color="#5A5A5A">'
-                                   f'{esc(s["action"])}</font><br/><font size="7.6" color="#5A5A5A">{tr("Machines : ")}{esc(machines)}</font>', d.CELL),
-                         Paragraph(str(len(s["hosts"])), d.CELLR), Paragraph(pct(s['pct']), d.CELLR)])
-        story += [Paragraph(tr("Actions de moindre priorité"), d.H2), d.tableau(rows, [9 * mm, W - 49 * mm, 18 * mm, 22 * mm]), Spacer(1, 10)]
     return d.construire(story)

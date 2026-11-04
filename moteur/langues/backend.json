@@ -143,7 +143,9 @@
   "Export des assets v2 refusé ({err}) : notes lues dans la liste des assets du poste de travail.": "Asset export v2 refused ({err}): reading scores from the workbench asset list.",
   "Notes ACR et AES lues pour {n} asset(s) dans le poste de travail.": "ACR and AES scores read for {n} asset(s) from the workbench.",
   "Le poste de travail ne donne pas de notes ACR ou AES : essai avec l'export des assets v1.": "The workbench gives no ACR or AES scores: trying asset export v1.",
-  "Liste des assets du poste de travail refusée ({err}) : essai avec l'export des assets v1.": "Workbench asset list refused ({err}): trying asset export v1."
+  "Liste des assets du poste de travail refusée ({err}) : essai avec l'export des assets v1.": "Workbench asset list refused ({err}): trying asset export v1.",
+  "Données issues de Tenable Vulnerability Management": "Data from Tenable Vulnerability Management",
+  "Périmètre : {p}": "Scope: {p}"
  },
  "es": {
   "{fichier}, ligne {n} : expression régulière invalide ({err}).": "{fichier}, línea {n}: expresión regular no válida ({err}).",
@@ -289,7 +291,9 @@
   "Export des assets v2 refusé ({err}) : notes lues dans la liste des assets du poste de travail.": "Exportación de activos v2 rechazada ({err}): puntuaciones leídas en la lista de activos del área de trabajo.",
   "Notes ACR et AES lues pour {n} asset(s) dans le poste de travail.": "Puntuaciones ACR y AES leídas para {n} activo(s) en el área de trabajo.",
   "Le poste de travail ne donne pas de notes ACR ou AES : essai avec l'export des assets v1.": "El área de trabajo no da puntuaciones ACR ni AES: se intenta la exportación de activos v1.",
-  "Liste des assets du poste de travail refusée ({err}) : essai avec l'export des assets v1.": "Lista de activos del área de trabajo rechazada ({err}): se intenta la exportación de activos v1."
+  "Liste des assets du poste de travail refusée ({err}) : essai avec l'export des assets v1.": "Lista de activos del área de trabajo rechazada ({err}): se intenta la exportación de activos v1.",
+  "Données issues de Tenable Vulnerability Management": "Datos procedentes de Tenable Vulnerability Management",
+  "Périmètre : {p}": "Alcance: {p}"
  },
  "it": {
   "{fichier}, ligne {n} : expression régulière invalide ({err}).": "{fichier}, riga {n}: espressione regolare non valida ({err}).",
@@ -435,6 +439,8 @@
   "Export des assets v2 refusé ({err}) : notes lues dans la liste des assets du poste de travail.": "Esportazione degli asset v2 rifiutata ({err}): punteggi letti nell'elenco degli asset del workbench.",
   "Notes ACR et AES lues pour {n} asset(s) dans le poste de travail.": "Punteggi ACR e AES letti per {n} asset nel workbench.",
   "Le poste de travail ne donne pas de notes ACR ou AES : essai avec l'export des assets v1.": "Il workbench non fornisce punteggi ACR o AES: tentativo con l'esportazione degli asset v1.",
-  "Liste des assets du poste de travail refusée ({err}) : essai avec l'export des assets v1.": "Elenco degli asset del workbench rifiutato ({err}): tentativo con l'esportazione degli asset v1."
+  "Liste des assets du poste de travail refusée ({err}) : essai avec l'export des assets v1.": "Elenco degli asset del workbench rifiutato ({err}): tentativo con l'esportazione degli asset v1.",
+  "Données issues de Tenable Vulnerability Management": "Dati provenienti da Tenable Vulnerability Management",
+  "Périmètre : {p}": "Perimetro: {p}"
  }
 }

@@ -150,7 +150,11 @@ function pagesFictives(h, p, fil, taille) {
   const logo = h.logo ? `<img class="fc-logo" src="${$("#f-logo").src}" alt="">`
     : themeActif() === "tenable" ? `<img class="fc-logo logo-tenable" src="/polices/tenable-logo-noir.svg" alt="tenable">` : "";
   const badge = !!(h.mention_interieur && h.mention);           // même règle que dans le PDF : badge en en-tête, plus de mention en pied
-  const pied = (badge ? [h.pied] : [h.mention, h.pied]).filter(Boolean).join(" · ");
+  // même règle que dans le PDF : le pied par défaut nomme le produit de l'export, et le périmètre suit
+  const piedSC = ["Données issues de Tenable Security Center", t("Données issues de Tenable Security Center")];
+  const piedProduit = produit() === "vm" && piedSC.includes(h.pied) ? t("Données issues de Tenable Vulnerability Management") : h.pied;
+  const a = etat.apercu, cible = libellePortee(a && a.portee ? a.portee : (etat.source === "sc" ? porteeCourante() : null));
+  const pied = [...(badge ? [] : [h.mention]), piedProduit, cible ? t("Périmètre : {p}", { p: cible }) : ""].filter(Boolean).join(" · ");
   const cadre = (n, corps) => `<span class="f-filigrane" aria-hidden="true"${fil ? "" : " hidden"} style="font-size:${taille}">${esc(fil)}</span>
     <div class="fc-entete">${badge ? `<span class="fc-badge">${esc(h.mention)}</span>` : ""}${logo}<div class="fc-droite"${badge ? ' style="margin-top:3cqw"' : ""}>${esc(entete)}<br>${esc(h.client || "")}</div></div>
     <div class="fc-corps">${corps}</div>

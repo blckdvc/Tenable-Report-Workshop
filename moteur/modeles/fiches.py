@@ -1,6 +1,7 @@
 """Fiches par machine : une fiche autonome par serveur, à remettre aux équipes d'exploitation."""
 from reportlab.platypus import CondPageBreak
 
+from .. import portee as P
 from ..i18n import tr
 from ..commun import (DocumentPDF, W, SEVC, esc, st, mm, Paragraph, Spacer, PageBreak, Table, TableStyle,
                       RULE, MUTED, pluriel)
@@ -40,7 +41,7 @@ def _fiche(d, an, h, i):
 
 
 def generer(an, habillage, sortie):
-    d = DocumentPDF(sortie, habillage, tr(NOM), meta(an))
+    d = DocumentPDF(sortie, habillage, tr(NOM), meta(an), produit=an.produit, portee=P.libelle(an.portee))
     sc = [(n, k) for n, k, a in (("ACR", "acr", an.a_acr), ("AES", "aes", an.a_aes)) if a]
     rows = [d.entete_tableau(tr("Machine"), tr("Adresse IP"), tr("Vuln."), tr("Critiques"), tr("Actions"), tr("Score"), *[n for n, _ in sc], droite=tuple(range(2, 6 + len(sc))))]
     for i, h in enumerate(an.machines):
