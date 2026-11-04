@@ -182,7 +182,7 @@
  "À retenir": "Da ricordare",
  "Par sévérité": "Per gravità",
  "Critique 40 · Élevée 10 · Moyenne 3 · Faible 1": "Critica 40 · Alta 10 · Media 3 · Bassa 1",
- "Barème de Security Center : simple, mais identique pour toutes les vulnérabilités d'une même sévérité.": "Scala di Security Center: semplice, ma identica per tutte le vulnerabilità della stessa gravità.",
+ "Barème de sévérité de Tenable (celui du score de Security Center) : simple, mais identique pour toutes les vulnérabilités d'une même sévérité.": "Scala di gravità di Tenable (quella del punteggio di Security Center): semplice, ma identica per tutte le vulnerabilità della stessa gravità.",
  "VPR du constat, de 0,1 à 10": "VPR del rilevamento, da 0,1 a 10",
  "Privilégie les vulnérabilités les plus susceptibles d'être exploitées. Sans VPR : médiane de la sévérité (9,5 · 8,0 · 5,5 · 2,0).": "Privilegia le vulnerabilità con maggiore probabilità di essere sfruttate. Senza VPR: mediana della gravità (9,5 · 8,0 · 5,5 · 2,0).",
  "Par VPR et ACR": "Per VPR e ACR",

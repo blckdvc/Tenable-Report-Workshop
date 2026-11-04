@@ -55,7 +55,7 @@ SCORES = [_Score(**d) for d in [
                      "par la moyenne des AES des machines analysées (une machine, une voix)."),
          niveaux=[("Élevé", "650 à 1 000"), ("Moyen", "350 à 649"), ("Faible", "0 à 349")]),
 ]]
-SOURCE = "Source : documentation Tenable (Security Center, CVSS vs. VPR)."   # texte français : afficher via source()
+SOURCE = "Source : documentation Tenable (CVSS vs. VPR)."   # texte français : afficher via source()
 
 
 def source():

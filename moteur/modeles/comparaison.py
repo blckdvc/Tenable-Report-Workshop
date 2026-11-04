@@ -110,9 +110,9 @@ def generer(avant, apres, habillage, sortie):
                       tr("{machines} du premier export n'apparaissent pas dans le second : leurs {v} vulnérabilités ne sont pas comptées comme corrigées.",
                          machines=pluriel(n, 'machine'), v=len(c['non_revues'])))
     story = [*guide_lecture(d, apres), PageBreak(), Paragraph(tr("1. Synthèse de l'évolution"), d.H1),
-             Paragraph(tr("Ce rapport compare deux exports de Tenable Security Center analysés avec le même périmètre et les mêmes "
-                          "règles. Une vulnérabilité est considérée comme corrigée si elle a disparu d'une machine présente dans "
-                          "les deux exports."), d.LEAD),
+             Paragraph(tr("Ce rapport compare deux exports Tenable analysés avec le même périmètre et les mêmes "
+                          "règles. Une vulnérabilité est considérée comme corrigée si elle a disparu d'une machine réanalysée, "
+                          "c'est-à-dire présente dans l'export récent."), d.LEAD),
              d.indicateurs([(pct(var, 0, signe=True), tr("évolution du score de risque"), BON if var < 0 else MAUVAIS),
                             (len(c["corrigees"]), tr("vulnérabilités corrigées"), BON),
                             (len(c["nouvelles"]), tr("nouvelles vulnérabilités"), MAUVAIS),

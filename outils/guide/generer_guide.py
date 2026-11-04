@@ -197,8 +197,9 @@ def contenu():
                  "Management through its API. A live log shows each step of an API retrieval.",
                  "**Group findings into solutions.** A set of rules turns Tenable plugin names into actions. All the Oracle Java "
                  "findings become one action, “Update Oracle Java SE”, because the latest update replaces the earlier ones.",
-                 "**Rank the solutions.** Each finding is weighted by severity (Critical 40, High 10, Medium 3, Low 1, as in "
-                 "Security Center), by VPR, or by VPR and ACR. The solutions that remove the most risk come first.",
+                 "**Rank the solutions.** Each finding is weighted with Tenable's scoring, whichever product the data comes "
+                 "from: by severity (Critical 40, High 10, Medium 3, Low 1, the scale behind the Security Center vulnerability "
+                 "score), by VPR, or by VPR and ACR. The solutions that remove the most risk come first.",
                  "**Produce the report.** Pick a template; the file is saved in the `rapports/` folder and can optionally be "
                  "sent by email."]),
           note("**Privacy.** The application only listens on 127.0.0.1 (your own machine). Client data leaves your computer in "
@@ -281,7 +282,7 @@ def contenu():
           p("The risk weighting sets how the “% of risk” of each solution is computed (it is calculated by the tool, never read "
             "from the API). A solution's “% of risk” is the weight of its findings divided by the weight of all findings in the "
             "scope, so the percentages add up to 100%. Three weightings are offered: by severity (Critical 40, High 10, Medium 3, "
-            "Low 1); by VPR (each finding weighs its VPR, 0.1 to 10, or the median of its severity, 9.5 / 8.0 / 5.5 / 2.0, when it "
+            "Low 1, Tenable's severity scale); by VPR (each finding weighs its VPR, 0.1 to 10, or the median of its severity, 9.5 / 8.0 / 5.5 / 2.0, when it "
             "has none); by VPR and ACR (VPR × ACR ÷ 10, adding the importance of the machine; Tenable's default ACR of 5 is used "
             "when it is missing). The weighting changes the ranking of solutions, not the per-machine score or the comparison "
             "of two exports."),
@@ -394,10 +395,12 @@ def contenu():
 
           # 7 --------------------------------------------------------------
           h1("7. Understanding the scores"),
-          p("The reports use five scores. Knowing which is which makes the rankings easy to explain.", LEAD),
+          p("The reports use five scores. They are Tenable's own scores and apply in the same way to Security Center and "
+            "Vulnerability Management data. Knowing which is which makes the rankings easy to explain.", LEAD),
           *tableau(["Score", "Applies to", "Scale", "What it tells you"], [
-              ["Risk score", "Report", "40 / 10 / 3 / 1", "Each vulnerability counts by severity, as in Security Center. The "
-               "impact of a solution is the share of the total score it removes. This ranks the solutions."],
+              ["Risk score", "Report", "40 / 10 / 3 / 1", "Each vulnerability counts by severity, with Tenable's severity scale "
+               "(the one behind the Security Center vulnerability score), for both products. The impact of a solution is the "
+               "share of the total score it removes. This ranks the solutions."],
               ["VPR", "Vulnerability", "0.1 to 10.0", "Vulnerability Priority Rating: how likely the flaw is to be exploited soon "
                "(exploit maturity, threat intelligence)."],
               ["ACR", "Machine", "1 to 10", "Asset Criticality Rating: how important the machine is to the business."],

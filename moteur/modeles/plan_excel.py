@@ -56,7 +56,7 @@ def _note_impact(an):
 
 
 def _libelle_ponderation(an):
-    return {"severite": tr("Critique 40 · Élevée 10 · Moyenne 3 · Faible 1 (Tenable Security Center)"),
+    return {"severite": tr("Critique 40 · Élevée 10 · Moyenne 3 · Faible 1 (barème de sévérité Tenable)"),
             "vpr": tr("VPR de chaque vulnérabilité (0,1 à 10) ; à défaut, médiane de la sévérité"),
             "vpr_acr": tr("VPR × ACR/10 ; à défaut, médiane de la sévérité et ACR par défaut de 5")}[an.ponderation]
 
