@@ -67,7 +67,7 @@ MOIS_FR = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "ao
            "septembre", "octobre", "novembre", "décembre"]
 AVIS = re.compile(r"\b(VMSA-\d{4}-\d{4}|cisco-sa-[\w-]+|FG-IR-\d{2}-\d+|JSA\d+|APSB\d{2}-\d+|SVD-\d{4}-\d{4}|K\d{6,9}|"
                   r"CTX\d+|SSA-\d{6}|SEVD-[\d-]+|SD\d{3,5}|HPESB\w+|ESA-\d{4}-\d+|SNWLID-[\d-]+|sk\d+|IJ\d+|"
-                  r"CONFSERVER-\d+|JRASERVER-\d+|DSA-\d{4}-\d+)\b")
+                  r"CONFSERVER-\d+|JRASERVER-\d+|DSA-\d{4}-\d+|GHSA(?:-[0-9a-z]{4}){3})\b")
 LISTES = {"paquet": "paquets", "avis": "avis", "note": "notes", "bulletin": "bulletins", "cve": "cves"}
 
 
@@ -128,6 +128,10 @@ def fixed_versions(name):
     """Versions corrigées citées dans l'intitulé : « < X », « prior to X », « before X » ; « <= X » à part."""
     strict = re.findall(r"(?:(?<![<=])<(?!=)|\bprior to\b|\bbefore\b)\s*(?:Build\s+|V)?(\d[\w.\-]*)", name)
     le = re.findall(r"<=\s*(?:Build\s+|V)?(\d[\w.\-]*)", name)
+    if not strict and not le:                     # « Vim 9.1.0764 (GHSA-…) » : la version citée est la version corrigée
+        m = re.match(r"^[A-Za-z][^<(]*?\s+v?(\d+(?:\.\d+)+)\s+\((?:GHSA-|CVE-\d)", name)
+        if m:
+            strict = [m.group(1)]
     return [v.rstrip(".,") for v in strict], [v.rstrip(".,") for v in le]
 
 
