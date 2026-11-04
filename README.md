@@ -103,6 +103,7 @@ There is no telemetry and no other outbound call.
 - **Vulnerability Management CSV exports are less complete.** They have no ACR, AES or last-seen date, and a machine is identified by its first IPv4 address.
 - **Comparisons only count fixes on machines present in both exports.** A vulnerability is counted as fixed only if its machine appears in both.
 - **The PHP2Shell template is dated.** Its threat summary was written as of 25 October 2026, so review it before using it for later reports.
+- **Vulnerability Management only returns recent findings by default.** Without a date filter, its export API returns vulnerabilities seen in the last 30 days, so machines that haven't been rescanned since are missing. Widen the profile's "Detection period" (90, 180, 365 days or the whole period) to include them.
 - **Email attachments are limited to 25 MB.**
 - **The Aeonik typeface isn't included.** The "Tenable" theme uses Aeonik, a commercial typeface. Place `Aeonik-Light.ttf`, `Aeonik-Regular.ttf`, `Aeonik-Medium.ttf` and `Aeonik-SemiBold.ttf` in `polices/` to use it; without them, the theme falls back to the free Inter typeface.
 - **The interface and code comments are mostly in French.** The reports themselves are available in four languages.

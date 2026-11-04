@@ -620,14 +620,14 @@ $("#produit").addEventListener("change", async () => {
 /* requête d'export Vulnerability Management (profil) */
 function remplirSourceVm() {
   const s = etat.profil.source || {};
-  $("#vm-cidr").value = s.cidr || ""; $("#vm-acr").checked = (s.acr_aes || "1") === "1";
+  $("#vm-cidr").value = s.cidr || ""; $("#vm-acr").checked = (s.acr_aes || "1") === "1"; $("#vm-periode").value = s.periode || "30";
   statut("#statut-vm-requete", "");
 }
 $("#form-vm-requete").addEventListener("input", () => statut("#statut-vm-requete", t("Modifications non enregistrées")));
 $("#form-vm-requete").addEventListener("submit", async (e) => {
   e.preventDefault();
   try {
-    etat.profil = await api("PUT", `/api/profils/${etat.profil.id}`, { source: { cidr: $("#vm-cidr").value, acr_aes: $("#vm-acr").checked ? "1" : "0" } });
+    etat.profil = await api("PUT", `/api/profils/${etat.profil.id}`, { source: { cidr: $("#vm-cidr").value, acr_aes: $("#vm-acr").checked ? "1" : "0", periode: $("#vm-periode").value } });
     etat.scope = selectionProfil();
     statut("#statut-vm-requete", t("Requête enregistrée"), "ok"); majRequeteJson(); majSource();
   } catch (err) { statut("#statut-vm-requete", err.message, "ko"); }
@@ -833,6 +833,7 @@ function majSource() {
     ? `${t("La connexion n'est pas configurée :")} <a href="#" data-aller="securitycenter">${t("renseignez-la dans l'onglet Configuration")}</a>.`
     : produit() === "vm"
     ? `${t("Requête du profil :")} ${[src && src.cidr ? t("plage {liste}", { liste: esc(src.cidr) }) : t("tous les assets"), sevTxt,
+        (src && src.periode === "0") ? t("toute la période") : t("vues depuis {n} jours", { n: (src && src.periode) || "30" }),
         (src && src.acr_aes === "0") ? t("sans ACR ni AES") : t("avec ACR et AES")].filter(Boolean).join(" ; ")}. <a href="#" data-aller="securitycenter">${t("Modifier la requête")}</a>`
     : `${t("Requête du profil :")} ${src && src.query_id ? t("requête enregistrée n° {id}", { id: esc(src.query_id) }) : [
         src && src.repositories ? t("dépôts {liste}", { liste: esc(src.repositories) }) : t("tous les dépôts"),

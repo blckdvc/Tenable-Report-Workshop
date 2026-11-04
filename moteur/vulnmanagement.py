@@ -26,7 +26,15 @@ from .i18n import tr
 from .regles import ErreurDonnees
 
 URL_DEFAUT = "https://cloud.tenable.com"
-SOURCE_DEFAUT = {"cidr": "", "acr_aes": "1", "tags": ""}          # propres à Vulnerability Management (dans la source du profil)
+SOURCE_DEFAUT = {"cidr": "", "acr_aes": "1", "tags": "", "periode": "30"}   # propres à Vulnerability Management (dans la source du profil)
+# Période des détections, en jours (« 0 » : toute la période). Sans filtre de date, l'export de l'API ne renvoie que les
+# vulnérabilités trouvées ou corrigées dans les 30 derniers jours : une machine non rescannée depuis en disparaît.
+PERIODES = ("30", "90", "180", "365", "0")
+
+
+def jours_periode(source):
+    v = str((source or {}).get("periode") or "30")
+    return int(v) if v in PERIODES else 30
 SEV_API = {"Critical": "critical", "High": "high", "Medium": "medium", "Low": "low"}
 
 
@@ -213,7 +221,7 @@ class Client:
 
     @staticmethod
     def _params_workbench(source):
-        params = {"date_range": 90, "filter.search_type": "and"}
+        params = {"date_range": jours_periode(source), "filter.search_type": "and"}
         filtres = [(f"tag.{c}", "set-has", ",".join(v)) for c, v in P.tags_source(source).items()]
         for i, (nom, qual, val) in enumerate(filtres):
             params.update({f"filter.{i}.filter": nom, f"filter.{i}.quality": qual, f"filter.{i}.value": val})
@@ -230,23 +238,44 @@ class Client:
         rep = self._appel("GET", "workbenches/assets", params={**self._params_workbench(source), "limit": 5000}) or {}
         return {str(a.get("id")) for a in (rep.get("assets") or []) if isinstance(a, dict) and a.get("id")}
 
-    def notes_acr_aes(self, journal):
-        """{asset: (ACR, AES)} par l'export des assets : v2, puis v1 si la v2 est refusée. Sans filtre : la v2 n'accepte
-        ni tags ni plage d'adresses, et le rapprochement avec les vulnérabilités se fait de toute façon par identifiant."""
+    def notes_acr_aes(self, source, journal):
+        """{asset: (ACR, AES)}. Ordre : export des assets v2 (sans filtre : la v2 n'accepte ni tags ni plage d'adresses ;
+        le rapprochement se fait par identifiant), puis liste des assets du poste de travail (5 000 au plus, mêmes tags et
+        même période), puis export des assets v1. Chaque refus est noté au journal."""
+        erreurs = []
         try:
             journal(tr("Demande d'export des assets (notes ACR et AES)."))
             return notes_assets(self._export("assets/v2", {"chunk_size": 1000}, journal=journal))
         except ErreurDonnees as e:
-            if getattr(e, "statut", None) not in (400, 403, 404):
+            if getattr(e, "statut", None) not in (400, 403, 404, 429):
                 raise
-            journal(tr("Export des assets v2 refusé ({err}) : essai avec l'export des assets v1.", err=e))
-        return notes_assets(self._export("assets", {"chunk_size": 1000}, journal=journal))
+            erreurs.append(e)
+            journal(tr("Export des assets v2 refusé ({err}) : notes lues dans la liste des assets du poste de travail.", err=e))
+        try:
+            rep = self._appel("GET", "workbenches/assets", params={**self._params_workbench(source), "limit": 5000}) or {}
+            notes = {str(a["id"]): (a.get("acr_score"), a.get("exposure_score"))
+                     for a in (rep.get("assets") or []) if isinstance(a, dict) and a.get("id")}
+            if any(acr is not None or aes is not None for acr, aes in notes.values()):
+                journal(tr("Notes ACR et AES lues pour {n} asset(s) dans le poste de travail.", n=len(notes)))
+                return notes
+            journal(tr("Le poste de travail ne donne pas de notes ACR ou AES : essai avec l'export des assets v1."))
+        except ErreurDonnees as e:
+            erreurs.append(e)
+            journal(tr("Liste des assets du poste de travail refusée ({err}) : essai avec l'export des assets v1.", err=e))
+        try:
+            return notes_assets(self._export("assets", {"chunk_size": 1000}, journal=journal))
+        except ErreurDonnees as e:
+            if erreurs and getattr(erreurs[0], "statut", None) == 403:
+                raise erreurs[0]                     # le premier refus est le plus parlant (droits de la clé d'API)
+            raise
 
     @staticmethod
     def corps_vulns(source, severites=None, filtres=True, tags=True):
         corps = {"num_assets": 500, "include_unlicensed": False}
         if filtres:
-            f = {"state": ["open", "reopened"]}
+            jours = jours_periode(source)
+            f = {"state": ["open", "reopened"],                  # date explicite : sans elle, l'API se limite à 30 jours
+                 "last_found": int(time.time()) - jours * 86400 if jours else 1}
             sev = [SEV_API[s] for s in (severites or []) if s in SEV_API]
             if sev:
                 f["severity"] = sev
@@ -276,6 +305,9 @@ class Client:
         source = {**SOURCE_DEFAUT, **(source or {})}
         journal(tr("Demande d'export des vulnérabilités à {url}.", url=self.url))
         tags = P.tags_source(source)
+        jours = jours_periode(source)
+        journal(tr("Période : vulnérabilités vues depuis {jours} jours.", jours=jours) if jours
+                else tr("Période : toutes les vulnérabilités, quelle que soit la date du dernier scan."))
         if tags:
             journal(tr("Filtre de tags : {tags}.", tags=" ; ".join(f"{c} = {' | '.join(v)}" for c, v in tags.items())))
         try:
@@ -300,7 +332,9 @@ class Client:
         if not lignes and tags:
             raise ErreurDonnees(tr("Aucune vulnérabilité ouverte sur les assets portant ces tags ({tags}), aux sévérités demandées. "
                                    "Le journal de la récupération détaille chaque étape.",
-                                   tags=" ; ".join(f"{c} = {' | '.join(v)}" for c, v in tags.items())))
+                                   tags=" ; ".join(f"{c} = {' | '.join(v)}" for c, v in tags.items()))
+                                + (" " + tr("Période actuelle : {jours} derniers jours. Si ces machines n'ont pas été rescannées depuis, "
+                                            "élargissez la « Période des détections » (onglet Configuration).", jours=jours) if jours else ""))
         if not lignes:
             raise ErreurDonnees(tr("La requête n'a renvoyé aucune vulnérabilité : vérifiez la plage d'adresses et les sévérités."))
         if not any(l["definition.name"] for l in lignes):
@@ -309,7 +343,7 @@ class Client:
         df = pd.DataFrame(lignes)
         if str(source.get("acr_aes", "1")) == "1":
             try:
-                notes = self.notes_acr_aes(journal)
+                notes = self.notes_acr_aes(source, journal)
                 df["acr"] = df["asset.id"].map(lambda a: (notes.get(str(a)) or (None, None))[0])
                 df["aes"] = df["asset.id"].map(lambda a: (notes.get(str(a)) or (None, None))[1])
                 if df["acr"].isna().all() and df["aes"].isna().all():

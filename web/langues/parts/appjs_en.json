@@ -178,5 +178,7 @@
  "Périmètre appliqué à cette génération.": "Scope applied to this report.",
  "Périmètre enregistré dans le profil.": "Scope saved in the profile.",
  "Attention : les deux exports n'ont pas le même périmètre.": "Warning: the two exports do not have the same scope.",
- "valeur": "value|values"
+ "valeur": "value|values",
+ "toute la période": "whole period",
+ "vues depuis {n} jours": "seen in the last {n} days"
 }

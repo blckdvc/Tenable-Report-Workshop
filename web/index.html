@@ -384,6 +384,15 @@
       <form class="formulaire carte" id="form-vm-requete" autocomplete="off">
         <h2>Requête d'export <small>propre au profil client</small></h2>
         <p class="aide">Récupère les vulnérabilités ouvertes (états open et reopened) par l'export de l'API, une ligne par machine et par vulnérabilité. Les sévérités sont celles de l'onglet Périmètre. L'export de gros volumes peut prendre plusieurs minutes.</p>
+        <div class="champ champ-moyen"><label for="vm-periode">Période des détections</label>
+          <select id="vm-periode" name="periode">
+            <option value="30">30 derniers jours (défaut de Tenable)</option>
+            <option value="90">90 derniers jours</option>
+            <option value="180">180 derniers jours</option>
+            <option value="365">365 derniers jours</option>
+            <option value="0">Toute la période</option>
+          </select>
+          <small class="aide">Une machine qui n'a pas été rescannée pendant cette période n'apparaît pas dans l'export.</small></div>
         <div class="champ"><label for="vm-cidr">Plage d'adresses (facultatif)</label>
           <input id="vm-cidr" name="cidr" placeholder="10.0.0.0/24, 10.1.0.0/16 ; vide : tous les assets" spellcheck="false"></div>
         <label class="case"><input type="checkbox" id="vm-acr"> Ajouter l'ACR et l'AES des machines (second export, plus long)</label>

@@ -212,5 +212,12 @@
  "Utiliser pour cette génération": "Usar para esta generación",
  "Enregistrer dans le profil": "Guardar en el perfil",
  "Listes d'actifs (identifiants)": "Listas de activos (identificadores)",
- "Journal de la récupération": "Registro de la recuperación"
+ "Journal de la récupération": "Registro de la recuperación",
+ "Période des détections": "Periodo de las detecciones",
+ "30 derniers jours (défaut de Tenable)": "Últimos 30 días (valor predeterminado de Tenable)",
+ "90 derniers jours": "Últimos 90 días",
+ "180 derniers jours": "Últimos 180 días",
+ "365 derniers jours": "Últimos 365 días",
+ "Toute la période": "Todo el periodo",
+ "Une machine qui n'a pas été rescannée pendant cette période n'apparaît pas dans l'export.": "Una máquina que no se ha vuelto a escanear durante este periodo no aparece en la exportación."
 }
