@@ -41,6 +41,11 @@ def _connexion(cfg):
     ctx = ssl.create_default_context()
     if not cfg.get("verifier_tls", True):
         ctx.check_hostname, ctx.verify_mode = False, ssl.CERT_NONE
+    return _connecter_ou_erreur(cfg, port, securite, ctx)
+
+
+def _ouvrir(cfg, port, securite, ctx):
+    s = None
     try:
         if securite == "ssl":
             s = smtplib.SMTP_SSL(cfg["hote"], port, timeout=30, context=ctx)
@@ -53,6 +58,18 @@ def _connexion(cfg):
         if cfg.get("utilisateur"):
             s.login(cfg["utilisateur"], cfg.get("mot_de_passe") or "")
         return s
+    except Exception:
+        if s is not None:                                      # connexion ouverte puis échec (STARTTLS, identifiants) : fermée
+            try:
+                s.close()
+            except Exception:
+                pass
+        raise
+
+
+def _connecter_ou_erreur(cfg, port, securite, ctx):
+    try:
+        return _ouvrir(cfg, port, securite, ctx)
     except smtplib.SMTPAuthenticationError:
         raise ErreurDonnees(tr("Identifiants SMTP refusés par le serveur."))
     except ssl.SSLError as e:

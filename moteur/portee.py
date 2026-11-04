@@ -92,22 +92,6 @@ def libelle(p):
 COLONNE = "Scope"                     # colonne du CSV récupéré par l'API : la portée y est inscrite (JSON), pour la retrouver plus tard
 
 
-def inscrire(chemin, p):
-    """Ajoute la portée `p` au CSV `chemin` (colonne « Scope »), pour qu'elle suive le fichier : rechargé à la main, comparé
-    plus tard ou utilisé en ligne de commande, le rapport affiche toujours le périmètre. Sans portée, rien n'est ajouté."""
-    if not p:
-        return
-    import csv
-    valeur = json.dumps(p, ensure_ascii=False)
-    with open(chemin, encoding="utf-8-sig", newline="") as f:          # au niveau du texte : les valeurs restent intactes
-        lignes = list(csv.reader(f))
-    if not lignes or COLONNE in lignes[0]:
-        return
-    lignes = [lignes[0] + [COLONNE]] + [l + [valeur] for l in lignes[1:]]
-    with open(chemin, "w", encoding="utf-8-sig", newline="") as f:
-        csv.writer(f).writerows(lignes)
-
-
 def lire(df):
     """Portée inscrite dans un export (colonne « Scope »), ou None."""
     if COLONNE not in df.columns:

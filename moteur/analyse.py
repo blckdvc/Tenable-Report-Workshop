@@ -73,6 +73,7 @@ class Analyse:
         brut = R.read_export(chemin)
         self.portee = portee or brut.attrs.get("portee")      # sinon, celle inscrite dans le fichier
         self.n_info = int((brut["Severity"] == "Info").sum())
+        self.hotes_scannes = set(R.hote(brut))                # toutes sévérités, Info compris : machines réanalysées
         prep = R.preparer(brut)
         self.produit = brut.attrs.get("produit", "sc")                # « sc » : Security Center, « vm » : Vulnerability Management
         self.n_hors_perimetre = prep["host"].nunique()
@@ -99,17 +100,26 @@ class Analyse:
         self.aes_rep = {"High": sum(v >= 650 for v in vals), "Medium": sum(350 <= v < 650 for v in vals), "Low": sum(v < 350 for v in vals)}
         self.a_acr, self.a_aes = bool(self.occ["ACR"].notna().any()), bool(self.occ["AES"].notna().any())
 
+    def noms_par_machine(self):
+        """{(machine, solution): intitulés Tenable}, calculé une fois (fiches par machine)."""
+        if not hasattr(self, "_noms"):
+            self._noms = {k: [str(x) for x in v] for k, v in self.occ.groupby(["host", "sol"])["Plugin Name"].unique().items()}
+        return self._noms
+
     def cum_at(self, k):
         return self.cums[min(k, len(self.cums)) - 1] if self.cums else 0
 
     def _machines(self):
-        out = []
+        out, sols_de = [], {}
+        for s in self.sols:                                   # machine -> solutions, en une passe (ordre de priorité conservé)
+            for h in s["par_hote"]:
+                sols_de.setdefault(h, []).append(s)
         for h, g in self.occ.groupby("host"):
             out.append(dict(ip=h, dns=g["dns"].iloc[0], score=int(g["weight"].sum()),
                             sevscore=g.groupby("Severity")["weight"].sum().to_dict(),
                             counts=g["Severity"].value_counts().to_dict(), n=len(g),
                             acr=g["ACR"].max(), aes=g["AES"].max(),
-                            sols=[s for s in self.sols if h in set(s["hosts"]["host"])]))
+                            sols=sols_de.get(h, [])))
         if any(x["aes"] == x["aes"] for x in out):       # AES connu : machines les plus exposées d'abord
             out.sort(key=lambda x: (x["aes"] != x["aes"], -(x["aes"] if x["aes"] == x["aes"] else 0), -x["score"], x["ip"]))
         else:

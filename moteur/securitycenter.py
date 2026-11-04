@@ -19,6 +19,7 @@ try:                                             # absente d'une installation an
 except ImportError:                              # pragma: no cover
     requests = None
 
+from . import portee as P
 from .i18n import tr
 from .regles import ErreurDonnees
 
@@ -184,7 +185,7 @@ class Client:
                 if str(r.get("lastSeen") or "").isdigit() else "",
                 "Solution": r.get("solution"), "Synopsis": r.get("synopsis")}
 
-    def exporter_csv(self, source, chemin, severites=None, limite=2_000_000, journal=None):
+    def exporter_csv(self, source, chemin, severites=None, limite=2_000_000, journal=None, portee=None):
         """Interroge l'API page par page et écrit le CSV. Renvoie {lignes, secondes}. `journal(message)` : suivi (facultatif)."""
         import time
         journal = journal or (lambda m: None)
@@ -212,5 +213,8 @@ class Client:
             raise ErreurDonnees(tr("La requête n'a renvoyé aucune vulnérabilité : vérifiez les dépôts, la liste d'actifs et les filtres."))
         journal(tr("Écriture du fichier CSV ({n} lignes).", n=len(lignes)))
         os.makedirs(os.path.dirname(os.path.abspath(chemin)), exist_ok=True)
-        pd.DataFrame(lignes, columns=COLONNES).to_csv(chemin, index=False, encoding="utf-8-sig")
+        df = pd.DataFrame(lignes, columns=COLONNES)
+        if portee:
+            df[P.COLONNE] = json.dumps(portee, ensure_ascii=False)
+        df.to_csv(chemin, index=False, encoding="utf-8-sig")
         return {"lignes": len(lignes), "total": total, "secondes": round(time.time() - t0, 1)}

@@ -224,14 +224,29 @@ def fields_for(names, groups_list, family):
 
 
 # ------------------------------------------------------------------ chargement de l'export et regroupement
+OPTIONNELLES = ("DNS Name", "NetBIOS Name", "Family", "CVE", "Port", "Protocol", "Solution", "Synopsis")   # créées vides si absentes
+
+
+def _separateur(path, enc):
+    """« ; » pour un CSV réenregistré par un Excel français, sinon « , »."""
+    try:
+        with open(path, encoding=enc) as f:
+            ligne = f.readline()
+    except (UnicodeDecodeError, OSError):
+        return ","
+    return ";" if ligne.count(";") > ligne.count(",") else ","
+
+
 def read_export(path):
     df = None
     for enc in ("utf-8-sig", "latin-1"):
         try:
-            df = pd.read_csv(path, low_memory=False, encoding=enc)
+            df = pd.read_csv(path, low_memory=False, encoding=enc, sep=_separateur(path, enc), dtype={"Plugin": str})
             break
         except UnicodeDecodeError:
             continue
+        except pd.errors.EmptyDataError:
+            raise ErreurDonnees(tr("Le fichier {fichier} est vide.", fichier=os.path.basename(path)))
         except Exception as e:
             raise ErreurDonnees(tr("Le fichier {fichier} n'est pas un fichier CSV lisible ({err}).", fichier=os.path.basename(path), err=e))
     if df is None or df.shape[1] < 2:
@@ -248,29 +263,49 @@ def read_export(path):
     if missing:
         raise ErreurDonnees(tr("Colonnes absentes de l'export : {colonnes}. Exportez la vue « Vulnerability List » de Tenable Security Center, ou la liste des vulnérabilités de Tenable Vulnerability Management, au format CSV.",
                                colonnes=", ".join(missing)))
-    for c in ("DNS Name", "NetBIOS Name", "Family"):
+    for c in OPTIONNELLES:
         if c not in df.columns:
             df[c] = None
     df = df.rename(columns={c: ALIAS_SCORES[c.strip().lower()] for c in df.columns
                             if c.strip().lower() in ALIAS_SCORES and ALIAS_SCORES[c.strip().lower()] not in df.columns})
     df["Plugin Name"] = df["Plugin Name"].fillna("").astype(str)          # une cellule vide ne doit pas faire échouer l'analyse
+    # identifiant de plugin en texte, sans « .0 » : les deux exports d'une comparaison se rapprochent toujours ; absent : le nom en tient lieu
+    plug = df["Plugin"]
+    df["Plugin"] = plug.astype(str).str.strip().str.replace(r"\.0$", "", regex=True).where(plug.notna(), "")
+    sans_id = df["Plugin"].isin(["", "nan", "N/A"])
+    df.loc[sans_id, "Plugin"] = "nom:" + df.loc[sans_id, "Plugin Name"]
     if not (df["Plugin Name"].str.strip() != "").any():
         raise ErreurDonnees(tr("La colonne « Plugin Name » est vide dans cet export : les vulnérabilités ne peuvent pas être "
                                "regroupées. Si l'export vient de l'API, relancez la récupération avec la dernière version."))
     return df
 
 
+def _nombre(serie):
+    """Nombre, y compris écrit avec une virgule décimale (« 7,4 » d'un Excel français) ; vide ou invalide : NaN."""
+    if serie.dtype == object:
+        serie = serie.astype(str).str.strip().str.replace(",", ".", regex=False)
+    return pd.to_numeric(serie, errors="coerce")
+
+
+def hote(df):
+    """Identifiant de la machine : adresse IP, sinon nom DNS ou NetBIOS (une ligne sans adresse n'est pas perdue)."""
+    def propre(c):
+        return df[c].astype(str).str.strip().where(df[c].notna(), "") if c in df.columns else pd.Series("", index=df.index)
+    ip, dns, nb = propre("IP Address"), propre("DNS Name"), propre("NetBIOS Name")
+    return ip.where(ip != "", dns.where(dns != "", nb.where(nb != "", tr("(machine sans adresse)"))))
+
+
 def preparer(df):
     """Colonnes de travail communes : machine, nom, poids de sévérité (les constats Info sont retirés)."""
     df = df[df["Severity"].isin(WEIGHT)].copy()
-    df["host"] = df["IP Address"].astype(str)
+    df["host"] = hote(df)
     df["dns"] = df["DNS Name"].fillna(df["NetBIOS Name"]).fillna("").astype(str)
     df["weight"] = df["Severity"].map(WEIGHT)
-    vpr = pd.to_numeric(df["VPR"], errors="coerce") if "VPR" in df.columns else pd.Series(float("nan"), index=df.index)
+    vpr = _nombre(df["VPR"]) if "VPR" in df.columns else pd.Series(float("nan"), index=df.index)
     df["vpr_ok"] = vpr.notna()
     df["vprw"] = vpr.where(vpr.notna(), df["Severity"].map(VPR_DEFAUT))
     for c in ("ACR", "AES"):
-        df[c] = pd.to_numeric(df[c], errors="coerce") if c in df.columns else float("nan")
+        df[c] = _nombre(df[c]) if c in df.columns else float("nan")
     df["vpracr"] = df["vprw"] * df["ACR"].fillna(ACR_DEFAUT) / 10      # VPR du constat × criticité de la machine (ACR / 10)
     return df
 
@@ -333,7 +368,8 @@ def analyser(df, rules, ponderation="severite"):
         # machines les plus exposées d'abord : AES décroissant s'il est connu, puis poids du risque
         hosts = (hosts.sort_values(["aes", "weight", "host"], ascending=[False, False, True], na_position="last")
                  if hosts["aes"].notna().any() else hosts.sort_values(["weight", "host"], ascending=[False, True]))
-        sols.append(dict(key=key, title=title, action=action, names=names,
+        par_hote = {r["host"]: r for r in hosts.to_dict("records")}        # accès direct à la ligne d'une machine
+        sols.append(dict(key=key, title=title, action=action, names=names, par_hote=par_hote,
                          maxsev=max(g["Severity"], key=SEV_ORDER.get), weight=int(g["weight"].sum()), rw=float(g[col].sum()),
                          pct=100 * g[col].sum() / total_r, n_vulns=len(names), n_occ=len(g),
                          sev_counts=plug["Severity"].value_counts().to_dict(), hosts=hosts))
@@ -382,11 +418,13 @@ def _ecrire_csv(path, colonnes, lignes):
     if os.path.exists(path):
         import shutil
         shutil.copyfile(path, path + ".bak")
-    with open(path, "w", encoding="utf-8-sig", newline="") as f:
+    provisoire = f"{path}.{uuid.uuid4().hex}.tmp"                   # écriture complète, puis remplacement atomique :
+    with open(provisoire, "w", encoding="utf-8-sig", newline="") as f:   # une génération en cours ne lit jamais un fichier tronqué
         w = csv.DictWriter(f, fieldnames=colonnes, delimiter=";", quoting=csv.QUOTE_ALL)
         w.writeheader()
         for row in lignes:
             w.writerow({k: row.get(k, "") for k in colonnes})
+    os.replace(provisoire, path)
 
 
 def _attribuer_ids(lignes):

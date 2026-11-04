@@ -9,6 +9,7 @@ import hashlib
 import html
 import json
 import os
+import threading
 
 from .i18n import tr, langue
 
@@ -116,8 +117,16 @@ def produire(modele_id, modele, habillage, dossier):
 
 
 # ------------------------------------------------------------------ pages PDF
+PDFIUM = threading.Lock()          # PDFium n'est pas utilisable par deux fils à la fois
+
+
 def pages_pdf(pdf_chemin, dossier, dpi=75):
     """Convertit le PDF en images page-N.png ; renvoie [{n, titre}] (titre = texte le plus gros de la page)."""
+    with PDFIUM:
+        return _pages_pdf(pdf_chemin, dossier, dpi)
+
+
+def _pages_pdf(pdf_chemin, dossier, dpi):
     import pypdfium2 as pdfium
     doc = pdfium.PdfDocument(pdf_chemin)
     pages = []
@@ -153,12 +162,16 @@ def _titre(page):
     return re.sub(rf"^\d+\s+(?:{noms})\s+", "", meilleur)[:80]
 
 
-def rendre_page(pdf_chemin, n, dpi):
+def rendre_page(pdf_chemin, n, dpi, sortie):
+    """Page n en PNG dans `sortie`, écrite sous un nom provisoire puis renommée : jamais de fichier à moitié écrit."""
     import pypdfium2 as pdfium
-    doc = pdfium.PdfDocument(pdf_chemin)
-    img = doc[n - 1].render(scale=dpi / 72).to_pil()
-    doc.close()
-    return img
+    with PDFIUM:
+        doc = pdfium.PdfDocument(pdf_chemin)
+        img = doc[n - 1].render(scale=dpi / 72).to_pil()
+        doc.close()
+    provisoire = f"{sortie}.{threading.get_ident()}.tmp"
+    img.save(provisoire, format="PNG")
+    os.replace(provisoire, sortie)
 
 
 # ------------------------------------------------------------------ feuilles Excel

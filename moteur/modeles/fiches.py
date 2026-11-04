@@ -23,8 +23,8 @@ def _fiche(d, an, h, i):
                             (len(h["sols"]), tr("actions à mener"), None)])
     rows = [d.entete_tableau(tr("Fait"), tr("Ordre"), tr("Action à mener"), tr("Vulnérabilités corrigées"), tr("Sévérité"))]
     for k, s in enumerate(h["sols"], 1):
-        hr = s["hosts"][s["hosts"]["host"] == h["ip"]].iloc[0]
-        noms = sorted(an.occ[(an.occ.host == h["ip"]) & (an.occ.sol == s["key"])]["Plugin Name"].astype(str).unique())
+        hr = s["par_hote"][h["ip"]]
+        noms = sorted(an.noms_par_machine().get((h["ip"], s["key"]), []))
         liste = "<br/>".join(esc(n[:70]) for n in noms[:3]) + (("<br/>" + tr("et {n} autres", n=len(noms) - 3)) if len(noms) > 3 else "")
         rows.append([Paragraph('<font name="DejaVu" size="11">☐</font>', d.CELLC), Paragraph(str(k), d.CELLC),
                      Paragraph(f'<font name="Inter-Medium">{esc(s["title"])}</font><br/>'

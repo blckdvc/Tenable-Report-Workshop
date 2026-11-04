@@ -145,7 +145,12 @@
   "Le poste de travail ne donne pas de notes ACR ou AES : essai avec l'export des assets v1.": "The workbench gives no ACR or AES scores: trying asset export v1.",
   "Liste des assets du poste de travail refusée ({err}) : essai avec l'export des assets v1.": "Workbench asset list refused ({err}): trying asset export v1.",
   "Données issues de Tenable Vulnerability Management": "Data from Tenable Vulnerability Management",
-  "Périmètre : {p}": "Scope: {p}"
+  "Périmètre : {p}": "Scope: {p}",
+  "Le fichier {fichier} est vide.": "The file {fichier} is empty.",
+  "(machine sans adresse)": "(machine without address)",
+  "{garde} enregistrement(s) sur {total} gardés après filtrage ici (état, période, plage d'adresses).": "{garde} of {total} record(s) kept after local filtering (state, period, address range).",
+  "Attention : {total} assets portent ces tags, le poste de travail n'en renvoie que {n} ; affinez la sélection pour couvrir toutes les machines.": "Warning: {total} assets carry these tags but the workbench only returns {n}; narrow the selection to cover every machine.",
+  "Requête invalide.": "Invalid request."
  },
  "es": {
   "{fichier}, ligne {n} : expression régulière invalide ({err}).": "{fichier}, línea {n}: expresión regular no válida ({err}).",
@@ -293,7 +298,12 @@
   "Le poste de travail ne donne pas de notes ACR ou AES : essai avec l'export des assets v1.": "El área de trabajo no da puntuaciones ACR ni AES: se intenta la exportación de activos v1.",
   "Liste des assets du poste de travail refusée ({err}) : essai avec l'export des assets v1.": "Lista de activos del área de trabajo rechazada ({err}): se intenta la exportación de activos v1.",
   "Données issues de Tenable Vulnerability Management": "Datos procedentes de Tenable Vulnerability Management",
-  "Périmètre : {p}": "Alcance: {p}"
+  "Périmètre : {p}": "Alcance: {p}",
+  "Le fichier {fichier} est vide.": "El archivo {fichier} está vacío.",
+  "(machine sans adresse)": "(máquina sin dirección)",
+  "{garde} enregistrement(s) sur {total} gardés après filtrage ici (état, période, plage d'adresses).": "{garde} de {total} registro(s) conservados tras el filtrado local (estado, periodo, rango de direcciones).",
+  "Attention : {total} assets portent ces tags, le poste de travail n'en renvoie que {n} ; affinez la sélection pour couvrir toutes les machines.": "Atención: {total} activos tienen estas etiquetas, pero el área de trabajo solo devuelve {n}; afine la selección para cubrir todas las máquinas.",
+  "Requête invalide.": "Petición no válida."
  },
  "it": {
   "{fichier}, ligne {n} : expression régulière invalide ({err}).": "{fichier}, riga {n}: espressione regolare non valida ({err}).",
@@ -441,6 +451,11 @@
   "Le poste de travail ne donne pas de notes ACR ou AES : essai avec l'export des assets v1.": "Il workbench non fornisce punteggi ACR o AES: tentativo con l'esportazione degli asset v1.",
   "Liste des assets du poste de travail refusée ({err}) : essai avec l'export des assets v1.": "Elenco degli asset del workbench rifiutato ({err}): tentativo con l'esportazione degli asset v1.",
   "Données issues de Tenable Vulnerability Management": "Dati provenienti da Tenable Vulnerability Management",
-  "Périmètre : {p}": "Perimetro: {p}"
+  "Périmètre : {p}": "Perimetro: {p}",
+  "Le fichier {fichier} est vide.": "Il file {fichier} è vuoto.",
+  "(machine sans adresse)": "(macchina senza indirizzo)",
+  "{garde} enregistrement(s) sur {total} gardés après filtrage ici (état, période, plage d'adresses).": "{garde} di {total} record conservati dopo il filtraggio locale (stato, periodo, intervallo di indirizzi).",
+  "Attention : {total} assets portent ces tags, le poste de travail n'en renvoie que {n} ; affinez la sélection pour couvrir toutes les machines.": "Attenzione: {total} asset hanno questi tag, ma il workbench ne restituisce solo {n}; restringete la selezione per coprire tutte le macchine.",
+  "Requête invalide.": "Richiesta non valida."
  }
 }

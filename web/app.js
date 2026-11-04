@@ -436,7 +436,11 @@ async function envoyerExport(f, zone, texte) {
     const e = await api("POST", "/api/exports", fd);
     zone.classList.add("charge"); texte.textContent = `${e.nom} (${taille(e.taille)})`;
     return e;
-  } catch (err) { texte.textContent = t("Déposez le fichier ici ou cliquez pour le choisir"); toast(err.message, true); return null; }
+  } catch (err) {
+    texte.textContent = zone.id === "depot2" ? t("Export récent à comparer : déposez le fichier ici ou cliquez pour le choisir")
+      : t("Déposez le fichier ici ou cliquez pour le choisir");
+    toast(err.message, true); return null;
+  }
 }
 brancherDepot($("#depot1"), $("#fichier1"), async (f) => {
   const e = await envoyerExport(f, $("#depot1"), $("#depot1-texte"));
@@ -887,7 +891,10 @@ async function recupererSC(cible, boutonSel, statutSel) {
   try {
     const r = await api("POST", "/api/securitycenter/exporter", { profil: etat.profil.id, modele: etat.modele, selection: etat.scope, journal: journal.id });
     const e = { id: r.id, nom: r.nom, taille: r.taille, portee: r.portee || null };
-    if (cible === 1) { etat.export1 = e; } else { etat.export2 = e; $("#depot2").classList.add("charge"); }
+    if (cible === 1) { etat.export1 = e; } else {
+      etat.export2 = e; $("#depot2").classList.add("charge");
+      $("#depot2-texte").textContent = `${e.nom} (${taille(e.taille)})`;              // la zone de dépôt affiche l'export récupéré
+    }
     statut(statutSel, t("{lignes} lignes récupérées en {secondes} s. Copie conservée dans {dossier}", { lignes: r.lignes.toLocaleString(locale()), secondes: r.secondes, dossier: r.dossier }) + (r.avertissement ? " " + r.avertissement : "")
       + (cible === 2 && porteesDifferentes(etat.export1, e) ? " " + t("Attention : les deux exports n'ont pas le même périmètre.") : ""), "ok");
     afficherModeles(); if (cible === 1) await rafraichirApercu();
