@@ -182,7 +182,7 @@
  "À retenir": "Key points",
  "Par sévérité": "By severity",
  "Critique 40 · Élevée 10 · Moyenne 3 · Faible 1": "Critical 40 · High 10 · Medium 3 · Low 1",
- "Barème de Security Center : simple, mais identique pour toutes les vulnérabilités d'une même sévérité.": "Security Center scale: simple, but identical for all vulnerabilities of the same severity.",
+ "Barème de sévérité de Tenable (celui du score de Security Center) : simple, mais identique pour toutes les vulnérabilités d'une même sévérité.": "Tenable's severity scale (the one behind the Security Center score): simple, but identical for all vulnerabilities of the same severity.",
  "VPR du constat, de 0,1 à 10": "VPR of the finding, from 0.1 to 10",
  "Privilégie les vulnérabilités les plus susceptibles d'être exploitées. Sans VPR : médiane de la sévérité (9,5 · 8,0 · 5,5 · 2,0).": "Favours the vulnerabilities most likely to be exploited. Without a VPR: median of the severity (9.5 · 8.0 · 5.5 · 2.0).",
  "Par VPR et ACR": "By VPR and ACR",

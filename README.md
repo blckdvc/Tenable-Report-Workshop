@@ -14,7 +14,7 @@ Two more documents go into detail on every feature:
   - a Tenable Vulnerability Management CSV export
   - the Security Center REST API (`POST /rest/analysis`) or the Vulnerability Management export API, using a profile's saved query or a scope picked in the app (Security Center asset lists, Vulnerability Management tags)
 - **Turns plugin names into actions** with an editable rule set (`regles/`). For example, many "Product < X" findings become a single "Install Product version X or later" action. Rules cover Linux/Unix, Windows, the main network and security vendors, industrial systems and protocols, and common issues such as TLS, certificates, SSH, SMB, SNMP, DNS, WPAD, credentials sent in cleartext and Secure Boot.
-- **Ranks the actions** by Security Center's severity weighting, by VPR, or by VPR × ACR. ACR, AES and an estimated Cyber Exposure Score are shown when the data has them.
+- **Ranks the actions with Tenable's scoring**, whichever product the data comes from: by severity (Critical 40, High 10, Medium 3, Low 1, the scale behind the Security Center vulnerability score), by VPR, or by VPR × ACR. ACR, AES and an estimated Cyber Exposure Score are shown when the data has them: Security Center and Vulnerability Management both provide them through their API.
 - **Applies each client's branding** through profiles: logo, main colour, title, footer, distribution notice and watermark. An optional "Tenable" theme switches the reports to the Tenable visual identity.
 - **Shows the scope of every report.** The asset lists or tags picked for an API retrieval appear on the cover and in the footer of every page, and stay attached to the saved CSV.
 - **Can email the report** through your own SMTP server, but only when you explicitly ask it to.

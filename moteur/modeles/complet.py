@@ -178,7 +178,8 @@ def annexe_scores(d, an, titre=True, jauge=True):
 def _texte_score_risque(an):
     mode = an.ponderation if an else "severite"
     if mode == "severite":
-        return tr("<b>Score de risque.</b> Chaque vulnérabilité est pondérée selon sa sévérité, comme dans Tenable Security Center : "
+        return tr("<b>Score de risque.</b> Chaque vulnérabilité est pondérée selon sa sévérité, avec le barème de sévérité de Tenable "
+                  "(celui du score de vulnérabilité de Security Center), quel que soit le produit d'où viennent les données : "
                   "Critique 40, Élevée 10, Moyenne 3, Faible 1. L'impact d'une solution sur la réduction du risque est la somme des "
                   "poids des vulnérabilités qu'elle corrige, rapportée au score total ; il sert à classer les solutions.")
     if mode == "vpr":
