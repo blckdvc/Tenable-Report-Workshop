@@ -166,6 +166,11 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .statut.ok { color: var(--bon); }
 .statut a { color: var(--accent); font-weight: 600; }
 .statut.ko { color: var(--erreur); }
+.journal { margin-top: 10px; }
+.journal summary { font-size: 13px; color: var(--gris); cursor: pointer; }
+.journal pre { margin: 6px 0 0; max-height: 11em; overflow: auto; padding: 8px 10px; border-radius: 6px;
+  background: rgba(127, 127, 127, 0.08); border: 1px solid rgba(127, 127, 127, 0.25);
+  font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-word; }
 
 .historique { margin-top: 8px; padding-top: 24px; border-top: 1px solid var(--filet); }
 .historique h3 { font-size: 16px; margin: 0 0 4px; }

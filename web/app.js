@@ -853,17 +853,41 @@ document.addEventListener("click", (e) => {
   const a = e.target.closest("[data-aller]"); if (!a) return;
   e.preventDefault(); $('.onglets [data-onglet="configuration"]').click();
 });
+/* Journal de la récupération : le serveur note chaque étape, l'interface le relit toutes les secondes pendant l'attente. */
+function suivreJournal(boiteSel) {
+  const boite = $(boiteSel), pre = $("pre", boite);
+  const id = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2)).replace(/[^A-Za-z0-9-]/g, "");
+  let vues = 0, actif = true, enCours = false;
+  pre.textContent = ""; boite.hidden = false; boite.open = true;
+  const lire = async () => {
+    if (enCours) return; enCours = true;
+    try {
+      const r = await fetch(`/api/journal/${id}?depuis=${vues}`).then((x) => x.json());
+      if (r.lignes && r.lignes.length) {
+        const enBas = pre.scrollHeight - pre.scrollTop - pre.clientHeight < 24;      // ne défile pas si l'utilisateur remonte
+        pre.textContent += (vues ? "\n" : "") + r.lignes.join("\n");
+        vues += r.lignes.length;
+        if (enBas) pre.scrollTop = pre.scrollHeight;
+      }
+    } catch { /* lecture suivante */ }
+    enCours = false;
+  };
+  const minuteur = setInterval(() => actif && lire(), 1000);
+  return { id, async fin() { actif = false; clearInterval(minuteur); while (enCours) await new Promise((r) => setTimeout(r, 50)); await lire(); } };
+}
 async function recupererSC(cible, boutonSel, statutSel) {
   const b = $(boutonSel); b.disabled = true;
   statut(statutSel, t("Interrogation de {produit}, cela peut prendre quelques minutes…", { produit: NOM_PRODUIT[produit()] }));
+  const journal = suivreJournal(cible === 1 ? "#journal-sc" : "#journal-sc2");
   try {
-    const r = await api("POST", "/api/securitycenter/exporter", { profil: etat.profil.id, modele: etat.modele, selection: etat.scope });
+    const r = await api("POST", "/api/securitycenter/exporter", { profil: etat.profil.id, modele: etat.modele, selection: etat.scope, journal: journal.id });
     const e = { id: r.id, nom: r.nom, taille: r.taille, portee: r.portee || null };
     if (cible === 1) { etat.export1 = e; } else { etat.export2 = e; $("#depot2").classList.add("charge"); }
     statut(statutSel, t("{lignes} lignes récupérées en {secondes} s. Copie conservée dans {dossier}", { lignes: r.lignes.toLocaleString(locale()), secondes: r.secondes, dossier: r.dossier }) + (r.avertissement ? " " + r.avertissement : "")
       + (cible === 2 && porteesDifferentes(etat.export1, e) ? " " + t("Attention : les deux exports n'ont pas le même périmètre.") : ""), "ok");
     afficherModeles(); if (cible === 1) await rafraichirApercu();
   } catch (err) { statut(statutSel, err.message, "ko"); }
+  await journal.fin();
   b.disabled = !scConfigure(); majBoutonGenerer();
 }
 $("#btn-sc-recuperer").addEventListener("click", () => recupererSC(1, "#btn-sc-recuperer", "#statut-sc"));

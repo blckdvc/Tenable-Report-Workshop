@@ -184,10 +184,12 @@ class Client:
                 if str(r.get("lastSeen") or "").isdigit() else "",
                 "Solution": r.get("solution"), "Synopsis": r.get("synopsis")}
 
-    def exporter_csv(self, source, chemin, severites=None, limite=2_000_000):
-        """Interroge l'API page par page et écrit le CSV. Renvoie {lignes, secondes}."""
+    def exporter_csv(self, source, chemin, severites=None, limite=2_000_000, journal=None):
+        """Interroge l'API page par page et écrit le CSV. Renvoie {lignes, secondes}. `journal(message)` : suivi (facultatif)."""
         import time
+        journal = journal or (lambda m: None)
         t0, lignes, debut, total, premiere = time.time(), [], 0, None, []
+        journal(tr("Interrogation de Security Center ({url}), par pages de {taille} lignes.", url=self.url, taille=self.taille_page))
         while total is None or debut < total:
             rep = self._appel("POST", "analysis", json=self.corps(source, debut, debut + self.taille_page, severites))
             if not isinstance(rep, dict) or "results" not in rep:
@@ -200,6 +202,7 @@ class Client:
                 premiere = list(page[0])                      # pour le message d'erreur si les noms manquent
             lignes.extend(self._ligne(r) for r in page)
             debut += len(page)
+            journal(tr("{recues} ligne(s) reçue(s) sur {total} ({secondes} s).", recues=debut, total=total, secondes=int(time.time() - t0)))
             if debut >= limite:
                 raise ErreurDonnees(tr("Plus de {limite} lignes : affinez la requête (dépôts, liste d'actifs, sévérités).", limite=limite))
         if lignes and not any(l["Plugin Name"] for l in lignes):
@@ -207,6 +210,7 @@ class Client:
                                    "Indiquez ces champs pour adapter la correspondance.", champs=", ".join(sorted(premiere))))
         if not lignes:
             raise ErreurDonnees(tr("La requête n'a renvoyé aucune vulnérabilité : vérifiez les dépôts, la liste d'actifs et les filtres."))
+        journal(tr("Écriture du fichier CSV ({n} lignes).", n=len(lignes)))
         os.makedirs(os.path.dirname(os.path.abspath(chemin)), exist_ok=True)
         pd.DataFrame(lignes, columns=COLONNES).to_csv(chemin, index=False, encoding="utf-8-sig")
         return {"lignes": len(lignes), "total": total, "secondes": round(time.time() - t0, 1)}
