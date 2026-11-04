@@ -148,7 +148,8 @@ def generer(an, habillage, sortie):
     _entete(ws, L0, titres, accent)
     for i, s in enumerate(an.sols):
         r = L0 + 1 + i
-        machines = ", ".join((x.dns or x.host) for x in s["hosts"].itertuples())
+        noms = [(x.dns or x.host) for x in s["hosts"].itertuples()]
+        machines = ", ".join(noms[:300]) + (tr(" et {n} autres", n=len(noms) - 300) if len(noms) > 300 else "")   # limite de cellule Excel
         vals = [s["rank"], PRIORITAIRE if s["key"] in an.cles_top else tr("Secondaire"), s["title"], s["action"],
                 SEV_FR[s["maxsev"]], s["n_vulns"], len(s["hosts"]), s["pct"] / 100, machines, None, None, ST_TODO, None]
         for j, v in enumerate(vals, 1):
@@ -193,7 +194,7 @@ def generer(an, habillage, sortie):
     for hm in an.machines:
         for s in hm["sols"]:
             r += 1
-            hr = s["hosts"][s["hosts"]["host"] == hm["ip"]].iloc[0]
+            hr = s["par_hote"][hm["ip"]]
             vals = [hm["dns"] or hm["ip"], hm["ip"], s["rank"], s["title"], int(hr["vulns"]), SEV_FR[hr["maxsev"]],
                     f"=IFERROR(INDEX({_q(N_PLAN)}!$L${L0 + 1}:$L${der},MATCH(C{r},{_q(N_PLAN)}!$A${L0 + 1}:$A${der},0)),\"\")",
                     ST_TODO, None]
@@ -230,7 +231,7 @@ def generer(an, habillage, sortie):
             vpr = None if vpr != vpr else vpr
         except (TypeError, ValueError):
             vpr = None
-        vals = [rr["dns"] or rr["host"], rr["host"], int(rr["Plugin"]), rr["Plugin Name"],
+        vals = [rr["dns"] or rr["host"], rr["host"], int(rr["Plugin"]) if str(rr["Plugin"]).isdigit() else rr["Plugin"], rr["Plugin Name"],
                 rr["Family"] if isinstance(rr["Family"], str) else "", SEV_FR[rr["Severity"]],
                 vpr, s["rank"], s["title"]]
         if an.a_acr or an.a_aes:

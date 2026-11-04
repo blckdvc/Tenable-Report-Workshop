@@ -1,5 +1,7 @@
 """Comparaison de deux exports : vulnérabilités corrigées, nouvelles et persistantes, évolution du risque."""
 from .. import graphiques as G
+from collections import Counter
+
 from .. import portee as P
 from ..analyse import libelle_machine
 from ..commun import (DocumentPDF, W, SEVC, BON, MAUVAIS, FR, esc, mm, Paragraph, Spacer, PageBreak, KeepTogether,
@@ -21,20 +23,30 @@ def calculer(avant, apres):
     b = apres.occ.set_index(["host", "Plugin"])
     hotes_b = set(apres.occ["host"])
     hotes_a = set(avant.occ["host"])
+    # machine réanalysée : présente dans l'export récent, quelle que soit la sévérité (une machine entièrement corrigée
+    # n'y garde parfois que des constats Info, retirés de l'analyse)
+    revues = getattr(apres, "hotes_scannes", None) or hotes_b
     ka, kb = set(a.index), set(b.index)
-    corrigees = {k for k in ka - kb if k[0] in hotes_b}     # machine réanalysée, vulnérabilité disparue
-    non_revues = {k for k in ka - kb if k[0] not in hotes_b}
+    corrigees = {k for k in ka - kb if k[0] in revues}       # machine réanalysée, vulnérabilité disparue
+    non_revues = {k for k in ka - kb if k[0] not in revues}
     nouvelles = kb - ka
     persistantes = ka & kb
-    poids = lambda df, keys: int(sum(df.loc[k, "weight"] for k in keys)) if keys else 0
+    poids_a, poids_b = a["weight"].groupby(level=[0, 1]).first(), b["weight"].groupby(level=[0, 1]).first()
+
+    def poids(df, keys):
+        if not keys:
+            return 0
+        serie = poids_a if df is a else poids_b
+        return int(serie.reindex(list(keys)).fillna(0).sum())
+    score_a, score_b = avant.occ.groupby("host")["weight"].sum(), apres.occ.groupby("host")["weight"].sum()
+    dns_a, dns_b = avant.occ.groupby("host")["dns"].first(), apres.occ.groupby("host")["dns"].first()
+    n_corr, n_nouv = Counter(k[0] for k in corrigees), Counter(k[0] for k in nouvelles)
     machines = []
     for h in sorted(hotes_a | hotes_b):
-        sa = int(avant.occ.loc[avant.occ.host == h, "weight"].sum())
-        sb = int(apres.occ.loc[apres.occ.host == h, "weight"].sum())
-        dns = (apres.occ.loc[apres.occ.host == h, "dns"].tolist() or avant.occ.loc[avant.occ.host == h, "dns"].tolist() or [""])[0]
-        machines.append(dict(ip=h, dns=dns, avant=sa, apres=sb, delta=sb - sa,
-                             corr=sum(1 for k in corrigees if k[0] == h), nouv=sum(1 for k in nouvelles if k[0] == h),
-                             statut="non réanalysée" if h not in hotes_b else ("nouvelle" if h not in hotes_a else "")))
+        sa, sb = int(score_a.get(h, 0)), int(score_b.get(h, 0))
+        dns = dns_b.get(h) if h in dns_b.index else dns_a.get(h, "")
+        machines.append(dict(ip=h, dns=dns or "", avant=sa, apres=sb, delta=sb - sa, corr=n_corr[h], nouv=n_nouv[h],
+                             statut="non réanalysée" if h not in revues else ("nouvelle" if h not in hotes_a else "")))
     sol_a = {s["key"]: s for s in avant.sols}
     sol_b = {s["key"]: s for s in apres.sols}
     solutions = []
@@ -137,8 +149,9 @@ def generer(avant, apres, habillage, sortie):
 
     # nouvelles critiques / élevées et critiques persistantes
     def liste(an, cles, titre, vide):
-        occ = an.occ.set_index(["host", "Plugin"])
-        sel = [(k, occ.loc[k]) for k in cles if occ.loc[k, "Severity"] in ("Critical", "High")]
+        occ = an.occ[an.occ["Severity"].isin(("Critical", "High"))].drop_duplicates(["host", "Plugin"]).set_index(["host", "Plugin"])
+        garde = [k for k in cles if k in occ.index]
+        sel = list(zip(garde, (r for _, r in occ.loc[garde].iterrows()))) if garde else []
         sel.sort(key=lambda kv: (-SEV_ORDER[kv[1]["Severity"]], kv[0][0]))
         out = [Paragraph(titre, d.H2)]
         if not sel:

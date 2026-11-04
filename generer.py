@@ -84,8 +84,8 @@ if args.securitycenter:
         nom = f"{args.profil or 'defaut'}_{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.csv"
         client = VMC.Client(CFG.lire()["vulnmanagement"]) if vm else SC.Client(CFG.lire()["securitycenter"])
         res = client.exporter_csv(
-            {**SC.SOURCE_DEFAUT, **VMC.SOURCE_DEFAUT, **(source or {})}, os.path.join(dossier, nom), perimetre_pour(MODELES[args.modele], perimetre).get("severites"))
-        PT.inscrire(os.path.join(dossier, nom), PT.portee({**SC.SOURCE_DEFAUT, **VMC.SOURCE_DEFAUT, **(source or {})}))
+            {**SC.SOURCE_DEFAUT, **VMC.SOURCE_DEFAUT, **(source or {})}, os.path.join(dossier, nom), perimetre_pour(MODELES[args.modele], perimetre).get("severites"),
+            portee=PT.portee({**SC.SOURCE_DEFAUT, **VMC.SOURCE_DEFAUT, **(source or {})}))
     except R.ErreurDonnees as e:
         sys.exit(tr("Erreur : {err}", err=e))
     args.exports.append(os.path.join(dossier, nom))

@@ -6,6 +6,7 @@ Lancement :  python app.py            (ouvre le navigateur)
 Les exports et les rapports restent sur ce poste : le serveur n'écoute que sur 127.0.0.1.
 """
 import argparse
+import atexit
 import datetime
 import glob
 import json
@@ -43,6 +44,7 @@ RAPPORTS = os.path.join(RACINE, "rapports")
 EXPORTS_SC = os.path.join(RACINE, "exports_security_center")     # CSV récupérés via l'API, conservés pour les comparaisons
 EXPORTS_VM = os.path.join(RACINE, "exports_vulnerability_management")
 SESSION = tempfile.mkdtemp(prefix="atelier_")
+atexit.register(shutil.rmtree, SESSION, True)                # exports déposés et exemples : effacés à l'arrêt
 os.makedirs(PROFILS, exist_ok=True)
 os.makedirs(RAPPORTS, exist_ok=True)
 
@@ -54,7 +56,8 @@ MAIL_DEFAUT = {
     "message": "Bonjour,\n\nVeuillez trouver ci-joint le rapport « {titre} » du {date}.\n\nCordialement",
 }
 EXPORTS = {}                                                 # id -> {chemin, nom, taille}
-VERROU = threading.Lock()
+VERROU = threading.Lock()                                    # génération (reportlab / matplotlib) : une à la fois
+VERROU_JOURNAUX = threading.Lock()                           # distinct : une génération en cours ne bloque pas le suivi
 JOURNAUX = {}                                                # id -> {lignes, fin, debut} : suivi des récupérations par API
 ID_JOURNAL = re.compile(r"^[A-Za-z0-9_-]{8,64}$")
 
@@ -65,7 +68,7 @@ def ouvrir_journal(jid):
     if not jid or not ID_JOURNAL.match(str(jid)):
         return None
     now = time.time()
-    with VERROU:
+    with VERROU_JOURNAUX:
         for k in [k for k, j in JOURNAUX.items() if now - j["debut"] > 3600]:      # journaux de plus d'une heure : oubliés
             del JOURNAUX[k]
         j = JOURNAUX[jid] = {"lignes": [], "fin": False, "debut": now}
@@ -263,6 +266,8 @@ def api_profil_creer():
 def api_profil_maj(pid):
     p = lire_profil(pid)
     d = corps_json()
+    if any(k in d and not isinstance(d[k], dict) for k in ("habillage", "perimetre", "source", "mail")):
+        return erreur(tr("Requête invalide."))
     if isinstance(d.get("nom"), str) and d["nom"].strip():
         p["nom"] = d["nom"].strip()
     if d.get("langue") and i18n.valide(d["langue"]) != p["langue"]:
@@ -276,13 +281,17 @@ def api_profil_maj(pid):
         p["langue"] = i18n.valide(d["langue"])
     if "habillage" in d:
         logo = p["habillage"].get("logo")
-        p["habillage"].update({k: v for k, v in d["habillage"].items() if k in HABILLAGE_DEFAUT and k != "logo"})
+        p["habillage"].update({k: (bool(v) if isinstance(HABILLAGE_DEFAUT[k], bool) else str(v if v is not None else ""))
+                               for k, v in d["habillage"].items() if k in HABILLAGE_DEFAUT and k != "logo"})
         p["habillage"]["logo"] = logo
         if not re.fullmatch(r"#[0-9A-Fa-f]{6}", p["habillage"].get("couleur") or ""):
             return erreur(tr("Couleur invalide : utilisez le format #RRGGBB."))
     if "perimetre" in d:
         per = {**p["perimetre"], **{k: v for k, v in d["perimetre"].items() if k in PERIMETRE_DEFAUT}}
-        per["severites"] = [s for s in per.get("severites", []) if s in ("Critical", "High", "Medium", "Low")]
+        per["severites"] = [s for s in (per.get("severites") if isinstance(per.get("severites"), list) else [])
+                            if s in ("Critical", "High", "Medium", "Low")]
+        for k in ("inclure", "exclure"):                        # filtres de machines : toujours du texte
+            per[k] = str(per.get(k) or "")
         if not per["severites"]:
             return erreur(tr("Retenez au moins une sévérité."))
         try:
@@ -386,7 +395,9 @@ def api_logo_voir(pid):
     if not p["habillage"].get("logo"):
         abort(404)
     from moteur.commun import preparer_logo          # même recadrage que dans les rapports
-    chemin, _ = preparer_logo(os.path.join(PROFILS, p["habillage"]["logo"]), tempfile.mkdtemp(dir=SESSION))
+    dossier = os.path.join(SESSION, "logos", slug(pid))      # un dossier par profil, réutilisé
+    os.makedirs(dossier, exist_ok=True)
+    chemin, _ = preparer_logo(os.path.join(PROFILS, p["habillage"]["logo"]), dossier)
     return send_file(chemin, mimetype="image/png", max_age=0)
 
 
@@ -614,8 +625,8 @@ def api_sc_exporter():
     journal = ouvrir_journal(d.get("journal"))
     try:
         mod = MODELES.get(d.get("modele") or "", {})
-        res = client.exporter_csv(p["source"], chemin, perimetre_pour(mod, p["perimetre"]).get("severites"), journal=journal)
-        PT.inscrire(chemin, PT.portee(p["source"]))              # le périmètre suit le fichier
+        res = client.exporter_csv(p["source"], chemin, perimetre_pour(mod, p["perimetre"]).get("severites"), journal=journal,
+                                  portee=PT.portee(p["source"]))     # le périmètre suit le fichier (colonne Scope)
         if journal:
             journal(tr("Contrôle du fichier obtenu."))
         R.read_export(chemin)                                    # même contrôle que pour un fichier déposé
@@ -728,7 +739,7 @@ def api_exemple_fichier(cle, nom):
         dpi = max(50, min(dpi, 200))
         grand = os.path.join(EXEMPLES, cle, f"page-{m.group(1)}-{dpi}.png")
         if not os.path.exists(grand):
-            EX.rendre_page(os.path.join(EXEMPLES, cle, "exemple.pdf"), int(m.group(1)), dpi).save(grand)
+            EX.rendre_page(os.path.join(EXEMPLES, cle, "exemple.pdf"), int(m.group(1)), dpi, grand)
         chemin = grand
     rep = send_file(chemin, mimetype="image/png" if nom.endswith(".png") else None, as_attachment=False)
     rep.headers["Cache-Control"] = "max-age=600"
@@ -755,7 +766,7 @@ def api_regles_tester():
     d = corps_json()
     lignes = d.get("regles")
     if lignes is not None:                         # tester les règles en cours d'édition, non enregistrées
-        tmp = os.path.join(SESSION, "regles_test.csv")
+        tmp = os.path.join(SESSION, f"regles_test_{uuid.uuid4().hex}.csv")
         R.ecrire_regles(lignes, tmp)
         regles = R.load_rules(tmp)
     else:
@@ -779,7 +790,7 @@ def api_regles_importer():
     f = request.files.get("fichier")
     if not f:
         return erreur(tr("Aucun fichier reçu."))
-    tmp = os.path.join(SESSION, "import_regles.csv")
+    tmp = os.path.join(SESSION, f"import_regles_{uuid.uuid4().hex}.csv")
     f.save(tmp)
     try:
         lignes = R.lire_regles_brutes(tmp)

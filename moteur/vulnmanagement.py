@@ -9,7 +9,9 @@ Authentification : en-tête X-ApiKeys (clés créées dans Vulnerability Managem
 
 Le nom des champs de la réponse a changé selon les versions de l'API (plugin.* ou definition.*, asset.ipv4 ou
 asset.ipv4_addresses…) : la lecture accepte les deux et signale clairement ce qu'elle ne retrouve pas."""
+import json
 import os
+import re
 import time
 
 import pandas as pd
@@ -229,15 +231,21 @@ class Client:
         return params
 
     def decompter(self, source):
-        """Nombre d'assets de la sélection (tags et plage d'adresses), d'après la liste des assets du poste de travail."""
+        """Nombre d'assets de la sélection (tags, sur la période des détections), d'après la liste des assets du poste de travail.
+        La plage d'adresses n'est pas prise en compte : le décompte peut être plus large que l'export."""
         rep = self._appel("GET", "workbenches/assets", params=self._params_workbench(source)) or {}
         n = rep.get("total_asset_count", rep.get("total"))
         return int(n) if str(n or "").isdigit() else (len(rep["assets"]) if isinstance(rep.get("assets"), list) else None)
 
-    def assets_tags(self, source):
+    def assets_tags(self, source, journal=None):
         """Identifiants des assets portant les tags de la sélection, d'après le poste de travail (5 000 assets au plus)."""
         rep = self._appel("GET", "workbenches/assets", params={**self._params_workbench(source), "limit": 5000}) or {}
-        return {str(a.get("id")) for a in (rep.get("assets") or []) if isinstance(a, dict) and a.get("id")}
+        ids = {str(a.get("id")) for a in (rep.get("assets") or []) if isinstance(a, dict) and a.get("id")}
+        total = rep.get("total_asset_count") or rep.get("total")
+        if journal and str(total or "").isdigit() and int(total) > len(ids):
+            journal(tr("Attention : {total} assets portent ces tags, le poste de travail n'en renvoie que {n} ; "
+                       "affinez la sélection pour couvrir toutes les machines.", total=total, n=len(ids)))
+        return ids
 
     def notes_acr_aes(self, source, journal):
         """{asset: (ACR, AES)}. Ordre : export des assets v2 (sans filtre : la v2 n'accepte ni tags ni plage d'adresses ;
@@ -290,7 +298,7 @@ class Client:
     def _vulns_par_tags_local(self, source, severites, rappel, journal, filtres=True):
         """Plan B quand le filtre de tags de l'export ne donne rien ou est refusé : export sans tags, puis sélection
         ici des vulnérabilités des assets portant ces tags (d'après le poste de travail)."""
-        ids = self.assets_tags(source)
+        ids = self.assets_tags(source, journal)
         journal(tr("{n} asset(s) portent ces tags selon le poste de travail de Vulnerability Management.", n=len(ids)))
         if not ids:
             return []
@@ -299,8 +307,51 @@ class Client:
         journal(tr("{garde} enregistrement(s) sur {total} concernent ces assets.", garde=len(garde), total=len(recs)))
         return garde
 
-    def exporter_csv(self, source, chemin, severites=None, limite=2_000_000, rappel=None, journal=None):
-        """Écrit le CSV. Renvoie {lignes, secondes, avertissement}. `journal(message)` : suivi des étapes (facultatif)."""
+    @staticmethod
+    def _filtre_local(recs, source, journal):
+        """Filtres de la requête appliqués ici quand Vulnerability Management les a refusés : état ouvert, période des
+        détections et plage d'adresses (sans quoi l'export couvrirait tout le parc et seulement 30 jours)."""
+        import datetime
+        import ipaddress
+        jours = jours_periode(source)
+        limite = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=jours)) if jours else None
+        reseaux = []
+        for x in re.split(r"[,;\s]+", str(source.get("cidr") or "")):
+            if x:
+                try:
+                    reseaux.append(ipaddress.ip_network(x, strict=False))
+                except ValueError:
+                    pass
+        garde = []
+        for r in recs:
+            f = _plat(r)
+            if str(_prem(f, "state") or "open").lower() not in ("open", "reopened"):
+                continue
+            if limite is not None:
+                try:
+                    vu = datetime.datetime.fromisoformat(str(_prem(f, "last_found", "last_seen")).replace("Z", "+00:00"))
+                    if vu.tzinfo is None:
+                        vu = vu.replace(tzinfo=datetime.timezone.utc)
+                    if vu < limite:
+                        continue
+                except ValueError:
+                    pass                                      # date illisible : la ligne est gardée
+            if reseaux:
+                ips = _prem(f, "asset.ipv4", "asset.ipv4_addresses", "asset.ipv4s") or []
+                ips = ips if isinstance(ips, list) else re.split(r"[,\s]+", str(ips))
+                try:
+                    if not any(ipaddress.ip_address(i) in n for i in ips if i for n in reseaux):
+                        continue
+                except ValueError:
+                    continue
+            garde.append(r)
+        journal(tr("{garde} enregistrement(s) sur {total} gardés après filtrage ici (état, période, plage d'adresses).",
+                   garde=len(garde), total=len(recs)))
+        return garde
+
+    def exporter_csv(self, source, chemin, severites=None, limite=2_000_000, rappel=None, journal=None, portee=None):
+        """Écrit le CSV. Renvoie {lignes, secondes, avertissement}. `journal(message)` : suivi des étapes (facultatif) ;
+        `portee` : sélection inscrite dans le fichier (colonne Scope)."""
         t0, avert = time.time(), []
         journal = journal or (lambda m: None)
         source = {**SOURCE_DEFAUT, **(source or {})}
@@ -326,6 +377,7 @@ class Client:
                 recs = self._vulns_par_tags_local(source, severites, rappel, journal, filtres=False)
             else:
                 recs = self._export("vulns", self.corps_vulns(source, severites, filtres=False), rappel, journal)
+            recs = self._filtre_local(recs, source, journal)
             avert.append(tr("Les filtres de l'export ont été refusés par Vulnerability Management : le tri a été fait ici."))
         if len(recs) > limite:
             raise ErreurDonnees(tr("Plus de {limite} lignes : affinez la requête (plage d'adresses, sévérités).", limite=limite))
@@ -360,6 +412,8 @@ class Client:
         if severites:
             out = out[out["Severity"].isin(set(severites) | {"Info"})]
         out["Source"] = "vm"
+        if portee:
+            out[P.COLONNE] = json.dumps(portee, ensure_ascii=False)
         os.makedirs(os.path.dirname(os.path.abspath(chemin)), exist_ok=True)
         out.to_csv(chemin, index=False, encoding="utf-8-sig")
         return {"lignes": len(out), "total": len(recs), "secondes": round(time.time() - t0, 1), "avertissement": " ".join(avert)}

@@ -144,7 +144,7 @@ def bloc_machine(d, an, h, sols):
                         actions=pluriel(len(sols), 'action')), d.SMALL)
     rows = [d.entete_tableau(tr("Fait"), tr("N°"), tr("Action"), tr("Vuln. corrigées"), tr("Sévérité max."))]
     for s in sols:
-        hr = s["hosts"][s["hosts"]["host"] == h["ip"]].iloc[0]
+        hr = s["par_hote"][h["ip"]]
         rows.append([Paragraph('<font name="DejaVu" size="11">☐</font>', d.CELLC), Paragraph(str(s["rank"]), d.CELLC),
                      Paragraph(f'<font name="Inter-Medium">{esc(s["title"])}</font><br/>'
                                f'<font size="7.6" color="#5A5A5A">{esc(s["action"])}</font>', d.CELL),

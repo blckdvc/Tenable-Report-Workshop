@@ -1,6 +1,7 @@
 """Mise en page commune des rapports PDF : polices, couleurs, couverture, en-têtes, blocs réutilisables."""
 import datetime
 import os
+import shutil
 import tempfile
 from xml.sax.saxutils import escape as esc
 
@@ -380,8 +381,11 @@ class DocumentPDF:
         cadre = Frame(MARGE, 19 * mm, W, A4[1] - 50 * mm, id="f", leftPadding=0, rightPadding=0, topPadding=0, bottomPadding=0)
         doc.addPageTemplates([PageTemplate("couverture", [cadre], onPage=self._couverture),
                               PageTemplate("corps", [cadre], onPage=self._page)])
-        doc.build([NextPageTemplate("corps"), PageBreak()] + story, canvasmaker=lambda *a, **k: _CanvasNumerote(
-            *a, filigrane=self.h.get("filigrane") or "", filigrane_couverture=bool(self.h.get("filigrane_couverture", True)), **k))
+        try:
+            doc.build([NextPageTemplate("corps"), PageBreak()] + story, canvasmaker=lambda *a, **k: _CanvasNumerote(
+                *a, filigrane=self.h.get("filigrane") or "", filigrane_couverture=bool(self.h.get("filigrane_couverture", True)), **k))
+        finally:
+            shutil.rmtree(self.tmp, ignore_errors=True)            # images intermédiaires (graphiques, logo)
         return self.sortie
 
     # ------------------------------------------------------------------ blocs
