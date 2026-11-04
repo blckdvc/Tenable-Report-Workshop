@@ -1,0 +1,17 @@
+{
+ "Voir un exemple": "Ver un ejemplo",
+ "Génération de l'exemple…": "Generando el ejemplo…",
+ "Exemple avec des données fictives, habillage du profil « {profil} »": "Ejemplo con datos ficticios y la personalización visual del perfil «{profil}»",
+ "Ouvrir le classeur d'exemple": "Abrir el libro de ejemplo",
+ "Ouvrir le PDF d'exemple": "Abrir el PDF de ejemplo",
+ "Page {n}": "Página {n}",
+ "Feuille « {nom} »": "Hoja «{nom}»",
+ "{n} / {total}": "{n} / {total}",
+ "Fermer": "Cerrar",
+ "Pages du rapport": "Páginas del informe",
+ "Page précédente": "Página anterior",
+ "Page suivante": "Página siguiente",
+ "Données fictives : le contenu réel dépendra de votre export.": "Datos ficticios: el contenido real dependerá de su exportación.",
+ "Ouvrir le fichier d'exemple": "Abrir el archivo de ejemplo",
+ "Cliquer pour agrandir ou réduire": "Haga clic para ampliar o reducir"
+}

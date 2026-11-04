@@ -1,0 +1,8 @@
+flask>=2.3
+pandas>=1.5
+matplotlib>=3.6
+reportlab>=3.6
+pillow>=9.0
+openpyxl>=3.1
+requests>=2.28
+pypdfium2>=4.30

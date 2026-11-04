@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atelier de rapports Tenable</title>
+<script>try { document.documentElement.dataset.theme = localStorage.getItem("theme") === "tenable" ? "tenable" : "atelier"; } catch (e) { document.documentElement.dataset.theme = "atelier"; }</script>
+<link rel="stylesheet" href="/web/style.css">
+</head>
+<body>
+<header class="barre">
+  <div class="marque">
+    <span class="marque-carre" aria-hidden="true"></span>
+    <img class="marque-logo" src="/polices/tenable-logo-blanc.svg" alt="tenable" data-i18n="non" width="108" height="28">
+    <span>Atelier de rapports</span>
+  </div>
+  <div class="barre-droite">
+  <div class="profil-choix">
+    <label for="profil-select">Profil client</label>
+    <select id="profil-select"></select>
+    <button class="btn-discret" id="profil-menu-btn" aria-haspopup="true" aria-expanded="false">Gérer</button>
+    <div class="menu" id="profil-menu" hidden>
+      <button data-action="nouveau">Nouveau profil</button>
+      <button data-action="dupliquer">Dupliquer ce profil</button>
+      <button data-action="renommer">Renommer</button>
+      <button data-action="supprimer" class="danger">Supprimer</button>
+    </div>
+  </div>
+  <div class="theme-choix">
+    <button type="button" class="btn-discret" id="theme-btn" aria-haspopup="true" aria-expanded="false" title="Thème de l'interface et des rapports">
+      <span class="theme-lib">Thème</span> <span class="theme-nom" id="theme-nom" data-i18n="non">Atelier</span>
+    </button>
+    <div class="menu" id="theme-menu" hidden>
+      <button type="button" data-theme="atelier"><b data-i18n="non">Atelier</b><small>Couleur principale et logo du profil client</small></button>
+      <button type="button" data-theme="tenable"><b data-i18n="non">Tenable</b><small>Charte graphique Tenable : police Aeonik, noir Soft Black, surlignage Hilighter</small></button>
+    </div>
+  </div>
+  <div class="langue-choix">
+    <button type="button" class="btn-discret" id="langue-btn" aria-haspopup="true" aria-expanded="false" title="Langue de l'interface et des rapports">
+      <span class="drapeau" data-i18n="non"></span><span class="langue-code" data-i18n="non">FR</span>
+    </button>
+    <div class="menu" id="langue-menu" hidden></div>
+  </div>
+  </div>
+</header>
+
+<div class="atelier">
+  <aside class="epreuve-col" aria-label="Aperçu de la couverture">
+    <div class="feuille" id="feuille">
+      <span class="f-filigrane" aria-hidden="true" hidden></span>
+      <div class="f-haut">
+        <img id="f-logo" alt="" hidden>
+        <span class="f-mention" id="f-mention" hidden></span>
+      </div>
+      <div class="f-centre">
+        <span class="f-barre"></span>
+        <div class="f-titre" id="f-titre"></div>
+        <div class="f-sous" id="f-sous"></div>
+      </div>
+      <dl class="f-meta" id="f-meta"></dl>
+    </div>
+    <div class="feuille feuille-corps" id="feuille-p2" hidden></div>
+    <div class="feuille feuille-corps" id="feuille-p3" hidden></div>
+    <div class="pages-apercu" id="pages-apercu" role="tablist" aria-label="Pages de l'aperçu" hidden>
+      <button type="button" role="tab" aria-selected="true" data-page="1">Couverture</button>
+      <button type="button" role="tab" aria-selected="false" data-page="2">Synthèse</button>
+      <button type="button" role="tab" aria-selected="false" data-page="3">Plan d'action</button>
+    </div>
+    <p class="epreuve-note" id="epreuve-note">Couverture du rapport, telle qu'elle sera imprimée.</p>
+  </aside>
+
+  <main class="travail">
+    <nav class="onglets" role="tablist">
+      <button role="tab" aria-selected="true" data-onglet="generer"><span>Générer</span></button>
+      <button role="tab" aria-selected="false" data-onglet="habillage"><span>Habillage</span></button>
+      <button role="tab" aria-selected="false" data-onglet="perimetre"><span>Périmètre</span></button>
+      <button role="tab" aria-selected="false" data-onglet="configuration"><span>Configuration</span></button>
+      <button role="tab" aria-selected="false" data-onglet="regles"><span>Règles</span></button>
+    </nav>
+
+    <!-- ================================================================ Générer -->
+    <section class="panneau" id="p-generer" role="tabpanel">
+      <ol class="etapes">
+        <li class="etape">
+          <h2>Charger l'export</h2>
+          <div class="source-choix" id="source-choix" role="radiogroup" aria-label="Origine des données">
+            <button type="button" role="radio" aria-checked="true" data-source="fichier">Fichier CSV</button>
+            <button type="button" role="radio" aria-checked="false" data-source="sc">Security Center (API)</button>
+          </div>
+          <div id="source-sc" hidden>
+            <p class="aide" id="sc-resume"></p>
+            <div class="portee" id="portee">
+              <span class="portee-titre">Cible du rapport</span>
+              <span class="portee-resume" id="portee-resume"></span>
+              <button type="button" class="btn-discret" id="btn-portee">Choisir le périmètre</button>
+            </div>
+            <div class="generer-ligne">
+              <button type="button" class="btn-secondaire" id="btn-sc-recuperer">Récupérer depuis Security Center</button>
+              <span class="statut" id="statut-sc" aria-live="polite"></span>
+            </div>
+          </div>
+          <p class="aide" id="aide-fichier">Export CSV de Tenable Security Center (vue « Vulnerability List ») ou de Tenable Vulnerability Management. Le fichier reste sur ce poste.</p>
+          <div class="depot" id="depot1" tabindex="0" role="button" aria-label="Choisir l'export CSV">
+            <input type="file" accept=".csv,text/csv" id="fichier1" hidden>
+            <span class="depot-texte" id="depot1-texte">Déposez le fichier ici ou cliquez pour le choisir</span>
+          </div>
+          <div class="apercu" id="apercu" hidden></div>
+        </li>
+
+        <li class="etape">
+          <h2>Choisir le modèle</h2>
+          <div class="modeles" id="modeles" role="radiogroup"></div>
+          <div class="depot depot-second" id="depot2" tabindex="0" role="button" aria-label="Choisir l'export récent" hidden>
+            <input type="file" accept=".csv,text/csv" id="fichier2" hidden>
+            <span class="depot-texte" id="depot2-texte">Export récent à comparer : déposez le fichier ici ou cliquez pour le choisir</span>
+          </div>
+          <div class="generer-ligne" id="sc-recent" hidden>
+            <button type="button" class="btn-discret" id="btn-sc-recuperer2">ou récupérer l'export récent depuis Security Center</button>
+            <span class="statut" id="statut-sc2" aria-live="polite"></span>
+          </div>
+        </li>
+
+        <li class="etape">
+          <h2>Générer le rapport</h2>
+          <div class="generer-ligne">
+            <button class="btn-principal" id="btn-generer" disabled>Générer le rapport</button>
+            <button class="btn-secondaire" id="btn-generer-envoyer" disabled>Générer et envoyer par courriel</button>
+            <span class="statut" id="statut-generer" aria-live="polite"></span>
+          </div>
+          <form class="envoi" id="envoi" hidden autocomplete="off">
+            <h3>Envoyer par courriel <small id="envoi-fichier"></small></h3>
+            <div class="champ"><label for="e-dest">Destinataires</label>
+              <input id="e-dest" placeholder="prenom.nom@exemple.fr, equipe@exemple.fr"></div>
+            <div class="champ"><label for="e-objet">Objet</label><input id="e-objet"></div>
+            <div class="champ"><label for="e-message">Message</label><textarea id="e-message" rows="5"></textarea></div>
+            <div class="generer-ligne">
+              <button type="submit" class="btn-secondaire" id="btn-envoyer">Envoyer le rapport</button>
+              <button type="button" class="btn-discret" id="btn-envoi-fermer">Fermer</button>
+              <span class="statut" id="statut-envoi" aria-live="polite"></span>
+            </div>
+          </form>
+        </li>
+      </ol>
+
+      <div class="historique">
+        <h3>Rapports générés</h3>
+        <p class="aide" id="dossier-rapports"></p>
+        <ul class="liste-rapports" id="liste-rapports"></ul>
+      </div>
+    </section>
+
+    <!-- ================================================================ Habillage -->
+    <section class="panneau" id="p-habillage" role="tabpanel" hidden>
+      <form class="formulaire" id="form-habillage" autocomplete="off">
+        <div class="champ">
+          <label for="h-titre">Titre du rapport</label>
+          <input id="h-titre" name="titre" maxlength="80">
+        </div>
+        <div class="champ">
+          <label for="h-sous_titre">Sous-titre</label>
+          <input id="h-sous_titre" name="sous_titre" maxlength="90" placeholder="Laissé vide : nom du modèle choisi">
+        </div>
+        <div class="champ">
+          <label for="h-client">Client</label>
+          <input id="h-client" name="client" maxlength="90">
+        </div>
+        <div class="champ">
+          <label for="h-mention">Mention de diffusion</label>
+          <input id="h-mention" name="mention" maxlength="40" list="mentions" placeholder="Par exemple : Diffusion restreinte">
+          <datalist id="mentions">
+            <option value="Diffusion restreinte"><option value="Confidentiel"><option value="Usage interne"><option value="Document de travail">
+          </datalist>
+          <label class="case"><input type="checkbox" id="h-mention-int" name="mention_interieur"> Afficher aussi la mention en en-tête des pages intérieures</label>
+        </div>
+        <div class="champ">
+          <label for="h-filigrane">Filigrane</label>
+          <input id="h-filigrane" name="filigrane" maxlength="30" list="filigranes" placeholder="Aucun">
+          <datalist id="filigranes">
+            <option value="Diffusion restreinte"><option value="Confidentiel"><option value="Projet"><option value="Brouillon">
+          </datalist>
+          <label class="case"><input type="checkbox" id="h-filigrane-couv" name="filigrane_couverture"> Afficher aussi sur la page de couverture</label>
+          <p class="aide">Texte en diagonale, discret, sur les pages du rapport PDF. Laissez vide pour n'en avoir aucun. Les fichiers Excel n'en portent pas. Quand un filigrane est défini, des onglets sous l'aperçu permettent de le voir sur deux pages intérieures d'exemple.</p>
+        </div>
+        <div class="champ">
+          <label for="h-pied">Pied de page</label>
+          <input id="h-pied" name="pied" maxlength="120">
+        </div>
+
+        <div class="champ champ-tenable">
+          <label for="h-couverture">Couverture</label>
+          <select id="h-couverture" name="couverture">
+            <option value="claire">Claire (blanche)</option>
+            <option value="sombre">Sombre (Soft Black)</option>
+          </select>
+          <p class="aide">Thème Tenable : le titre est en Aeonik Light et son dernier mot est surligné en Hilighter. Les pages intérieures restent blanches.</p>
+        </div>
+        <fieldset class="champ champ-atelier">
+          <legend>Couleur principale</legend>
+          <div class="couleurs" id="couleurs">
+            <button type="button" class="pastille-c" data-c="#000091" title="Bleu France"></button>
+            <button type="button" class="pastille-c" data-c="#0B3D91" title="Bleu marine"></button>
+            <button type="button" class="pastille-c" data-c="#00695C" title="Vert sapin"></button>
+            <button type="button" class="pastille-c" data-c="#4A148C" title="Violet"></button>
+            <button type="button" class="pastille-c" data-c="#B71C1C" title="Rouge"></button>
+            <button type="button" class="pastille-c" data-c="#37474F" title="Ardoise"></button>
+            <label class="couleur-libre">Autre <input type="color" id="h-couleur" name="couleur"></label>
+          </div>
+        </fieldset>
+
+        <p class="aide champ-tenable">En thème Tenable, la couleur principale du profil est remplacée par la charte (Soft Black et gris neutres). Le logo du profil est conservé ; sans logo, le logo Tenable est utilisé.</p>
+        <fieldset class="champ">
+          <legend>Logo</legend>
+          <p class="aide">PNG ou JPG. Les marges blanches sont retirées automatiquement. Il apparaît en couverture et en en-tête de chaque page.</p>
+          <div class="logo-ligne">
+            <button type="button" class="btn-secondaire" id="btn-logo">Choisir un logo</button>
+            <button type="button" class="btn-discret" id="btn-logo-retirer" hidden>Retirer le logo</button>
+            <input type="file" id="fichier-logo" accept="image/png,image/jpeg" hidden>
+          </div>
+        </fieldset>
+
+        <div class="actions-form">
+          <button type="submit" class="btn-principal" id="btn-habillage">Enregistrer l'habillage</button>
+          <span class="statut" id="statut-habillage" aria-live="polite"></span>
+        </div>
+      </form>
+    </section>
+
+    <!-- ================================================================ Périmètre -->
+    <section class="panneau" id="p-perimetre" role="tabpanel" hidden>
+      <form class="formulaire" id="form-perimetre" autocomplete="off">
+        <fieldset class="champ">
+          <legend>Sévérités retenues</legend>
+          <div class="sev-choix" id="sev-choix">
+            <label class="sev sev-Critical"><input type="checkbox" value="Critical"> Critique</label>
+            <label class="sev sev-High"><input type="checkbox" value="High"> Élevée</label>
+            <label class="sev sev-Medium"><input type="checkbox" value="Medium"> Moyenne</label>
+            <label class="sev sev-Low"><input type="checkbox" value="Low"> Faible</label>
+          </div>
+          <p class="aide">Les constats de sévérité Info ne sont jamais repris : ce sont des informations d'inventaire.</p>
+        </fieldset>
+        <div class="champ champ-court">
+          <label for="p-top">Solutions dans le plan d'action</label>
+          <input id="p-top" type="number" min="1" max="100" step="1">
+        </div>
+        <div class="champ champ-ponderation">
+          <label for="p-ponderation">Pondération du risque</label>
+          <select id="p-ponderation">
+            <option value="severite">Par sévérité (40 · 10 · 3 · 1)</option>
+            <option value="vpr">Par VPR (probabilité d'exploitation)</option>
+            <option value="vpr_acr">Par VPR et criticité de la machine (ACR)</option>
+          </select>
+          <p class="aide">Détermine le « % du risque » de chaque solution et donc leur classement.</p>
+          <details class="note-calcul" id="note-ponderation">
+            <summary>Comment le « % du risque » est-il calculé ?</summary>
+            <p>Le « % du risque » d'une solution est la part du risque total du périmètre qu'elle supprime. Le périmètre est l'ensemble des constats retenus ci-dessus : sévérités cochées, machines incluses et exclues.</p>
+            <p class="formule">% du risque = poids des constats de la solution ÷ poids de tous les constats du périmètre × 100</p>
+            <ol>
+              <li>Un constat est un couple machine / vulnérabilité, compté une seule fois même s'il est détecté sur plusieurs ports. Les constats Info sont exclus.</li>
+              <li>Chaque constat reçoit un poids, selon la pondération choisie (tableau ci-dessous).</li>
+              <li>La somme des poids de tous les constats correspond à 100 %. Celle des constats corrigés par une solution en donne le pourcentage.</li>
+            </ol>
+            <table class="table-ponderation">
+              <thead><tr><th>Pondération</th><th>Poids d'un constat</th><th>À retenir</th></tr></thead>
+              <tbody>
+                <tr data-mode="severite"><th>Par sévérité</th><td>Critique 40 · Élevée 10 · Moyenne 3 · Faible 1</td><td>Barème de Security Center : simple, mais identique pour toutes les vulnérabilités d'une même sévérité.</td></tr>
+                <tr data-mode="vpr"><th>Par VPR</th><td>VPR du constat, de 0,1 à 10</td><td>Privilégie les vulnérabilités les plus susceptibles d'être exploitées. Sans VPR : médiane de la sévérité (9,5 · 8,0 · 5,5 · 2,0).</td></tr>
+                <tr data-mode="vpr_acr"><th>Par VPR et ACR</th><td>VPR × ACR ÷ 10</td><td>Ajoute l'importance de la machine (ACR de 1 à 10). Sans ACR : valeur par défaut de Tenable, 5.</td></tr>
+              </tbody>
+            </table>
+            <p class="calcul-exemple"><b>Exemple.</b> Si le périmètre pèse 200 points au total et que les constats corrigés par « Mettre à jour Mozilla Firefox » pèsent 35 points, cette mise à jour supprime 17,5 % du risque.</p>
+            <p><b>À savoir.</b></p>
+            <ul>
+              <li>Le pourcentage est relatif au périmètre : si vous changez les sévérités ou les machines, le total change et tous les pourcentages aussi.</li>
+              <li>L'outil suppose qu'appliquer la solution supprime tous les constats qu'elle regroupe.</li>
+              <li>Le score par machine, les tableaux par sévérité et la comparaison de deux exports restent calculés par sévérité.</li>
+              <li>L'AES et le CES ne servent pas à ce calcul : ils sont affichés tels que Tenable les fournit.</li>
+              <li>Si l'export ne contient pas d'ACR (cas d'un export CSV de Vulnerability Management), la pondération par VPR et ACR donne le même classement que la pondération par VPR.</li>
+              <li>Ce pourcentage est calculé par l'outil : il peut différer de la « réduction du risque » affichée par Tenable.</li>
+            </ul>
+          </details>
+        </div>
+        <div class="deux-col">
+          <div class="champ">
+            <label for="p-inclure">Machines à inclure</label>
+            <textarea id="p-inclure" rows="6" spellcheck="false" placeholder="Vide : toutes les machines"></textarea>
+          </div>
+          <div class="champ">
+            <label for="p-exclure">Machines à exclure</label>
+            <textarea id="p-exclure" rows="6" spellcheck="false" placeholder="10.0.99.0/24&#10;*.lab&#10;srv-test-*"></textarea>
+          </div>
+        </div>
+        <p class="aide">Une entrée par ligne : une adresse IP, un réseau (10.0.0.0/8) ou un nom de machine avec jokers (*.lab, srv-*).</p>
+        <div class="actions-form">
+          <button type="submit" class="btn-principal">Enregistrer le périmètre</button>
+          <span class="statut" id="statut-perimetre" aria-live="polite"></span>
+        </div>
+      </form>
+    </section>
+
+    <!-- ================================================================ Configuration -->
+    <section class="panneau" id="p-configuration" role="tabpanel" hidden>
+      <h2 class="sec-titre">Produit Tenable</h2>
+      <div class="formulaire carte" id="carte-produit">
+        <h2>Source des données <small>propre au profil client</small></h2>
+        <p class="aide">Choisissez le produit dont ce profil récupère les exports par l'API. Un fichier CSV déposé à la main est reconnu automatiquement, quel que soit le produit.</p>
+        <div class="champ champ-moyen"><label for="produit">Produit</label>
+          <select id="produit"><option value="sc">Tenable Security Center</option><option value="vm">Tenable Vulnerability Management</option></select></div>
+        <span class="statut" id="statut-produit" aria-live="polite"></span>
+      </div>
+      <div id="cfg-sc">
+      <h2 class="sec-titre">Security Center</h2>
+      <form class="formulaire carte" id="form-sc-connexion" autocomplete="off">
+        <h2>Connexion <small>commune à tous les profils</small></h2>
+        <p class="aide" data-i18n-html>Clés d'API à créer dans Security Center (Users, puis API Keys) pour un compte en lecture seule. Elles sont enregistrées dans <code>config.json</code>, lisible par votre utilisateur seul, ou fournies par les variables d'environnement <code>TENABLE_SC_URL</code>, <code>TENABLE_SC_ACCESS_KEY</code> et <code>TENABLE_SC_SECRET_KEY</code>.</p>
+        <div class="champ"><label for="sc-url">Adresse de Security Center</label>
+          <input id="sc-url" name="url" placeholder="https://securitycenter.exemple.fr" spellcheck="false"></div>
+        <div class="deux-col">
+          <div class="champ"><label for="sc-access">Access key</label><input id="sc-access" name="access_key" spellcheck="false"></div>
+          <div class="champ"><label for="sc-secret">Secret key</label><input id="sc-secret" name="secret_key" type="password" autocomplete="new-password"></div>
+        </div>
+        <div class="champ"><label for="sc-ca">Certificat de l'autorité (facultatif)</label>
+          <input id="sc-ca" name="ca_bundle" placeholder="Chemin d'un fichier .pem, pour une PKI interne" spellcheck="false"></div>
+        <label class="case"><input type="checkbox" id="sc-tls" name="verifier_tls"> Vérifier le certificat du serveur (à ne désactiver que pour un test)</label>
+        <div class="actions-form">
+          <button type="submit" class="btn-principal">Enregistrer la connexion</button>
+          <button type="button" class="btn-secondaire" id="btn-sc-tester">Tester la connexion</button>
+          <span class="statut" id="statut-sc-connexion" aria-live="polite"></span>
+        </div>
+      </form>
+      <form class="formulaire carte" id="form-sc-requete" autocomplete="off">
+        <h2>Requête d'export <small>propre au profil client</small></h2>
+        <p class="aide">Reproduit l'export de l'interface : une ligne par machine et par vulnérabilité (outil « Vulnerability Detail List »). Les sévérités sont celles de l'onglet Périmètre. Laissez vide pour tout récupérer.</p>
+        <div class="champ"><label for="q-repos">Dépôts (identifiants)</label>
+          <input id="q-repos" name="repositories" placeholder="1, 3" spellcheck="false"><div class="chips" id="chips-repos"></div></div>
+        <div class="champ"><label for="q-asset">Listes d'actifs (identifiants)</label>
+          <input id="q-asset" name="asset_list" placeholder="Laissé vide : tous les actifs" spellcheck="false"><div class="chips" id="chips-asset"></div></div>
+        <div class="champ"><label for="q-query">Requête enregistrée (identifiant)</label>
+          <input id="q-query" name="query_id" placeholder="Si renseigné, remplace les dépôts, la liste d'actifs et les filtres" spellcheck="false"><div class="chips" id="chips-query"></div></div>
+        <div class="champ champ-court"><button type="button" class="btn-discret" id="btn-sc-listes">Afficher les dépôts, listes et requêtes disponibles</button></div>
+        <details class="avance">
+          <summary>Options avancées</summary>
+          <div class="champ"><label for="q-type">Données</label>
+            <select id="q-type" name="source_type"><option value="cumulative">État actuel (cumulative)</option><option value="patched">Vulnérabilités corrigées (patched)</option></select></div>
+          <div class="champ"><label for="q-outil">Outil d'analyse</label>
+            <select id="q-outil" name="outil"><option value="vulndetails">Détail par machine (vulndetails)</option><option value="listvuln">Liste agrégée (listvuln)</option></select></div>
+          <div class="champ"><label for="q-filtres">Filtres supplémentaires (JSON)</label>
+            <textarea id="q-filtres" name="filtres" rows="4" spellcheck="false" placeholder='[{"filterName":"pluginText","operator":"=","value":"Apache"}]'></textarea></div>
+        </details>
+        <div class="actions-form">
+          <button type="submit" class="btn-principal">Enregistrer la requête</button>
+          <span class="statut" id="statut-sc-requete" aria-live="polite"></span>
+        </div>
+        <details class="avance" id="voir-requete"><summary>Voir la requête envoyée à l'API</summary><pre id="requete-json"></pre></details>
+      </form>
+      </div>
+      <div id="cfg-vm" hidden>
+      <h2 class="sec-titre">Vulnerability Management</h2>
+      <form class="formulaire carte" id="form-vm-connexion" autocomplete="off">
+        <h2>Connexion <small>commune à tous les profils</small></h2>
+        <p class="aide" data-i18n-html>Clés d'API à créer dans Vulnerability Management (Paramètres, Mon profil, Clés d'API). Elles sont enregistrées dans <code>config.json</code>, lisible par votre utilisateur seul, ou fournies par les variables d'environnement <code>TENABLE_VM_URL</code>, <code>TENABLE_VM_ACCESS_KEY</code> et <code>TENABLE_VM_SECRET_KEY</code>. Le compte doit pouvoir exporter les vulnérabilités (rôle Basic ou supérieur).</p>
+        <div class="champ"><label for="vm-url">Adresse de Vulnerability Management</label>
+          <input id="vm-url" name="url" placeholder="https://cloud.tenable.com" spellcheck="false"></div>
+        <div class="deux-col">
+          <div class="champ"><label for="vm-access">Access key</label><input id="vm-access" name="access_key" spellcheck="false"></div>
+          <div class="champ"><label for="vm-secret">Secret key</label><input id="vm-secret" name="secret_key" type="password" autocomplete="new-password"></div>
+        </div>
+        <div class="champ"><label for="vm-ca">Certificat de l'autorité (facultatif)</label>
+          <input id="vm-ca" name="ca_bundle" placeholder="Chemin d'un fichier .pem, pour un proxy d'inspection TLS" spellcheck="false"></div>
+        <label class="case"><input type="checkbox" id="vm-tls" name="verifier_tls"> Vérifier le certificat du serveur (à ne désactiver que pour un test)</label>
+        <div class="actions-form">
+          <button type="submit" class="btn-principal">Enregistrer la connexion</button>
+          <button type="button" class="btn-secondaire" id="btn-vm-tester">Tester la connexion</button>
+          <span class="statut" id="statut-vm-connexion" aria-live="polite"></span>
+        </div>
+      </form>
+      <form class="formulaire carte" id="form-vm-requete" autocomplete="off">
+        <h2>Requête d'export <small>propre au profil client</small></h2>
+        <p class="aide">Récupère les vulnérabilités ouvertes (états open et reopened) par l'export de l'API, une ligne par machine et par vulnérabilité. Les sévérités sont celles de l'onglet Périmètre. L'export de gros volumes peut prendre plusieurs minutes.</p>
+        <div class="champ"><label for="vm-cidr">Plage d'adresses (facultatif)</label>
+          <input id="vm-cidr" name="cidr" placeholder="10.0.0.0/24, 10.1.0.0/16 ; vide : tous les assets" spellcheck="false"></div>
+        <label class="case"><input type="checkbox" id="vm-acr"> Ajouter l'ACR et l'AES des machines (second export, plus long)</label>
+        <div class="actions-form">
+          <button type="submit" class="btn-principal">Enregistrer la requête</button>
+          <span class="statut" id="statut-vm-requete" aria-live="polite"></span>
+        </div>
+        <details class="avance" id="voir-requete-vm"><summary>Voir la requête envoyée à l'API</summary><pre id="requete-vm-json"></pre></details>
+      </form>
+      </div>
+      <h2 class="sec-titre">Courriel</h2>
+      <form class="formulaire carte" id="form-smtp" autocomplete="off">
+        <h2>Serveur SMTP <small>commun à tous les profils</small></h2>
+        <p class="aide" data-i18n-html>Les rapports sont envoyés en pièce jointe, uniquement quand vous le demandez. Le mot de passe est enregistré dans <code>config.json</code> ou fourni par <code>SMTP_PASSWORD</code>.</p>
+        <div class="deux-col">
+          <div class="champ"><label for="m-hote">Serveur</label><input id="m-hote" name="hote" placeholder="smtp.exemple.fr" spellcheck="false"></div>
+          <div class="champ"><label for="m-port">Port</label><input id="m-port" name="port" type="number" min="1" max="65535"></div>
+        </div>
+        <div class="champ champ-moyen"><label for="m-securite">Chiffrement</label>
+          <select id="m-securite" name="securite">
+            <option value="starttls">STARTTLS (port 587 en général)</option>
+            <option value="ssl">SSL/TLS direct (port 465)</option>
+            <option value="aucune">Aucun (relais interne, port 25)</option>
+          </select></div>
+        <div class="deux-col">
+          <div class="champ"><label for="m-user">Utilisateur (facultatif)</label><input id="m-user" name="utilisateur" spellcheck="false"></div>
+          <div class="champ"><label for="m-pass">Mot de passe</label><input id="m-pass" name="mot_de_passe" type="password" autocomplete="new-password"></div>
+        </div>
+        <div class="deux-col">
+          <div class="champ"><label for="m-exp">Adresse d'expédition</label><input id="m-exp" name="expediteur" placeholder="rapports@exemple.fr" spellcheck="false"></div>
+          <div class="champ"><label for="m-nom">Nom affiché</label><input id="m-nom" name="nom_expediteur"></div>
+        </div>
+        <label class="case"><input type="checkbox" id="m-tls" name="verifier_tls"> Vérifier le certificat du serveur</label>
+        <div class="actions-form">
+          <button type="submit" class="btn-principal">Enregistrer le serveur</button>
+          <button type="button" class="btn-secondaire" id="btn-smtp-tester">Tester la connexion</button>
+          <span class="statut" id="statut-smtp" aria-live="polite"></span>
+        </div>
+      </form>
+      <form class="formulaire carte" id="form-mail" autocomplete="off">
+        <h2>Message par défaut <small>propre au profil client</small></h2>
+        <div class="champ"><label for="d-dest">Destinataires habituels</label>
+          <textarea id="d-dest" name="destinataires" rows="2" spellcheck="false" placeholder="Une adresse par ligne, ou séparées par des virgules"></textarea></div>
+        <div class="champ"><label for="d-objet">Objet</label><input id="d-objet" name="objet"></div>
+        <div class="champ"><label for="d-message">Message</label><textarea id="d-message" name="message" rows="6"></textarea>
+          <p class="aide" data-i18n-html>Variables disponibles : <code>{titre}</code>, <code>{client}</code>, <code>{date}</code>, <code>{fichier}</code>.</p></div>
+        <div class="actions-form">
+          <button type="submit" class="btn-principal">Enregistrer le message</button>
+          <span class="statut" id="statut-mail" aria-live="polite"></span>
+        </div>
+      </form>
+    </section>
+
+    <!-- ================================================================ Règles -->
+    <section class="panneau" id="p-regles" role="tabpanel" hidden>
+      <div class="regles-tete">
+        <p class="aide">Les règles traduisent les intitulés Tenable en actions de remédiation, dans la langue du profil actif (un fichier de règles par langue). La première règle qui correspond l'emporte : l'ordre compte.</p>
+        <div class="regles-outils">
+          <button class="btn-secondaire" id="btn-regle-ajouter">Ajouter une règle</button>
+          <a class="btn-discret" href="/api/regles/fichier">Exporter le fichier</a>
+          <button class="btn-discret" id="btn-regles-importer">Importer un fichier</button>
+          <input type="file" id="fichier-regles" accept=".csv" hidden>
+        </div>
+      </div>
+
+      <div class="testeur">
+        <label for="test-intitules">Tester des intitulés Tenable</label>
+        <textarea id="test-intitules" rows="3" spellcheck="false" placeholder="Un intitulé par ligne, par exemple : Google Chrome < 154.0.8037.97 Multiple Vulnerabilities"></textarea>
+        <div class="testeur-actions">
+          <button class="btn-secondaire" id="btn-tester">Tester</button>
+          <button class="btn-discret" id="btn-sans-regle" hidden>Reprendre les intitulés sans règle de l'export</button>
+        </div>
+        <ul class="resultats-test" id="resultats-test"></ul>
+      </div>
+
+      <div class="regles-barre">
+        <input type="search" id="regles-filtre" placeholder="Filtrer les règles (clé, motif, titre)" aria-label="Filtrer les règles">
+        <span class="statut" id="statut-regles" aria-live="polite"></span>
+        <button class="btn-principal" id="btn-regles-enregistrer" disabled>Enregistrer les règles</button>
+      </div>
+      <ol class="regles" id="regles"></ol>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<dialog id="exemple" class="exemple" aria-labelledby="ex-titre">
+  <header class="ex-tete">
+    <div>
+      <h2 id="ex-titre"></h2>
+      <p class="ex-sous" id="ex-sous"></p>
+    </div>
+    <button type="button" class="ex-fermer" id="ex-fermer" aria-label="Fermer" title="Fermer">×</button>
+  </header>
+  <div class="ex-corps">
+    <nav class="ex-vignettes" id="ex-vignettes" aria-label="Pages du rapport"></nav>
+    <section class="ex-scene">
+      <div class="ex-cadre" id="ex-cadre" tabindex="-1"></div>
+      <p class="ex-legende" id="ex-legende" aria-live="polite"></p>
+    </section>
+  </div>
+  <footer class="ex-pied">
+    <span class="ex-note">Données fictives : le contenu réel dépendra de votre export.</span>
+    <span class="ex-nav">
+      <button type="button" class="btn-discret" id="ex-prec" aria-label="Page précédente">‹</button>
+      <span id="ex-pos" aria-live="polite"></span>
+      <button type="button" class="btn-discret" id="ex-suiv" aria-label="Page suivante">›</button>
+    </span>
+    <a class="btn-discret" id="ex-ouvrir" target="_blank" rel="noopener">Ouvrir le fichier d'exemple</a>
+  </footer>
+</dialog>
+<dialog id="dlg-portee" class="dlg-portee" aria-labelledby="pt-titre">
+  <header class="pt-tete">
+    <h2 id="pt-titre">Choisir le périmètre</h2>
+    <button type="button" class="ex-fermer" id="pt-fermer" aria-label="Fermer" title="Fermer">×</button>
+  </header>
+  <div class="pt-corps">
+    <p class="aide" id="pt-aide"></p>
+    <input type="search" id="pt-filtre" placeholder="Filtrer la liste" spellcheck="false" aria-label="Filtrer la liste">
+    <div class="pt-liste" id="pt-liste" aria-live="polite"></div>
+  </div>
+  <footer class="pt-pied">
+    <span class="pt-compte" id="pt-compte" aria-live="polite"></span>
+    <span class="pt-actions">
+      <button type="button" class="btn-discret" id="pt-vider">Tout désélectionner</button>
+      <button type="button" class="btn-secondaire" id="pt-appliquer">Utiliser pour cette génération</button>
+      <button type="button" class="btn-principal" id="pt-enregistrer">Enregistrer dans le profil</button>
+    </span>
+  </footer>
+</dialog>
+<script src="/web/i18n.js"></script>
+<script src="/web/app.js"></script>
+</body>
+</html>

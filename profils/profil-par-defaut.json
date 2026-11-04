@@ -1,0 +1,25 @@
+{
+  "nom": "Profil par défaut",
+  "habillage": {
+    "titre": "Rapport de vulnérabilités",
+    "sous_titre": "",
+    "client": "",
+    "mention": "",
+    "couleur": "#000091",
+    "logo": null,
+    "pied": "Données issues de Tenable Security Center"
+  },
+  "perimetre": {
+    "severites": [
+      "Critical",
+      "High",
+      "Medium",
+      "Low"
+    ],
+    "top": 20,
+    "inclure": "",
+    "exclure": ""
+  },
+  "modele": "complet",
+  "modifie": "2026-10-12T23:52:13"
+}

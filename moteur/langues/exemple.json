@@ -1,0 +1,20 @@
+{
+ "en": {
+  "Client exemple": "Example client",
+  "Page de couverture": "Cover page",
+  "Suite de la page précédente": "Continued from the previous page",
+  "L'aperçu en images demande la bibliothèque « pypdfium2 » : exécutez « .venv/bin/python -m pip install -r requirements.txt » (Windows : .venv\\Scripts\\python.exe), puis relancez. Le PDF d'exemple reste consultable.": "The image preview needs the “pypdfium2” library: run “.venv/bin/python -m pip install -r requirements.txt” (Windows: .venv\\Scripts\\python.exe), then restart. The example PDF can still be opened."
+ },
+ "es": {
+  "Client exemple": "Cliente de ejemplo",
+  "Page de couverture": "Portada",
+  "Suite de la page précédente": "Continuación de la página anterior",
+  "L'aperçu en images demande la bibliothèque « pypdfium2 » : exécutez « .venv/bin/python -m pip install -r requirements.txt » (Windows : .venv\\Scripts\\python.exe), puis relancez. Le PDF d'exemple reste consultable.": "La vista previa en imágenes necesita la biblioteca «pypdfium2»: ejecute «.venv/bin/python -m pip install -r requirements.txt» (Windows: .venv\\Scripts\\python.exe) y reinicie. El PDF de ejemplo sigue siendo accesible."
+ },
+ "it": {
+  "Client exemple": "Cliente di esempio",
+  "Page de couverture": "Copertina",
+  "Suite de la page précédente": "Continua dalla pagina precedente",
+  "L'aperçu en images demande la bibliothèque « pypdfium2 » : exécutez « .venv/bin/python -m pip install -r requirements.txt » (Windows : .venv\\Scripts\\python.exe), puis relancez. Le PDF d'exemple reste consultable.": "L'anteprima come immagini richiede la libreria «pypdfium2»: eseguire «.venv/bin/python -m pip install -r requirements.txt» (Windows: .venv\\Scripts\\python.exe) e riavviare. Il PDF di esempio resta consultabile."
+ }
+}
