@@ -255,8 +255,7 @@ def contenu():
           p("With the Tenable theme, the client's main colour is replaced by the brand palette. The profile logo is kept; without "
             "a logo, the Tenable logo is used. The cover is white by default; a dark (Soft Black) cover can be chosen in the "
             "Branding tab. Severity colours in charts and badges are data colours and are kept. The command-line option "
-            "`--theme atelier|tenable` overrides the setting for one report. Aeonik is a commercial typeface and is not "
-            "shipped: drop the four `Aeonik-*.ttf` files in `polices/`, otherwise the theme uses Inter."),
+            "`--theme atelier|tenable` overrides the setting for one report."),
           F.deux("theme_atelier.png", "The Atelier theme.", "theme_tenable.png", "The Tenable theme."),
           *h2("Generate"),
           p("The tab has three numbered steps. **1. Load the export**: from a CSV file or through the API of the profile's "
