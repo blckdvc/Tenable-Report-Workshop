@@ -115,14 +115,12 @@ There is no telemetry and no other outbound call.
 ## Known limitations
 
 - **Remediation actions are inferred from plugin names.** Target versions come from Tenable's plugin names and the rule set, so have a technical team review the action plan before you send it to a client. Findings that match no rule fall back to the plugin's `Solution` text.
-- **Some API features were only tested against a mock server.** The Vulnerability Management client (vulnerability export, tags, detection period, asset export) has been run against a live tenant; combining several Security Center asset lists has only been tested against a mock server. If a field isn't recognised, the error message lists the fields received.
 - **Vulnerability Management CSV exports are less complete.** They have no ACR, AES or last-seen date, and a machine is identified by its first IPv4 address.
 - **Comparisons only count fixes on rescanned machines.** A vulnerability is counted as fixed only if its machine appears in the recent export, with any finding (Info included). A machine missing from the recent export is reported as "not rescanned".
 - **Very large exports take time to lay out.** On 58,000 findings across 3,000 machines, the analysis takes about 1.5 s, the executive summary under 1 s, the comparison about 3 s, the Excel plan about 12 s, and the full plan and per-machine sheets 40 to 50 s each (one PDF page per machine).
 - **The PHP2Shell template is dated.** Its threat summary was written as of 25 October 2026, so review it before using it for later reports.
 - **Vulnerability Management only returns recent findings by default.** Without a date filter, its export API returns vulnerabilities seen in the last 30 days, so machines that haven't been rescanned since are missing. Widen the profile's "Detection period" (90, 180, 365 days or the whole period) to include them.
 - **Email attachments are limited to 25 MB.**
-- **The Aeonik typeface isn't included.** The "Tenable" theme uses Aeonik, a commercial typeface. Place `Aeonik-Light.ttf`, `Aeonik-Regular.ttf`, `Aeonik-Medium.ttf` and `Aeonik-SemiBold.ttf` in `polices/` to use it; without them, the theme falls back to the free Inter typeface.
 - **The interface and code comments are mostly in French.** The reports themselves are available in four languages.
 
 ## Project layout
