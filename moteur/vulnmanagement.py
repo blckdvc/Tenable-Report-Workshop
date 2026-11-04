@@ -151,26 +151,36 @@ class Client:
         return {"utilisateur": rep.get("username") or rep.get("name") or ""}
 
     # ------------------------------------------------------------------ exports asynchrones
-    def _export(self, base, corps, rappel=None):
-        """Lance l'export `base` (« vulns » ou « assets/v2 »), attend sa fin et renvoie la liste de tous les enregistrements."""
+    def _export(self, base, corps, rappel=None, journal=None):
+        """Lance l'export `base` (« vulns » ou « assets/v2 »), attend sa fin et renvoie la liste de tous les enregistrements.
+        `journal(message)` reçoit, s'il est fourni, le suivi de chaque étape (affiché dans l'interface)."""
+        journal = journal or (lambda m: None)
         rep = self._appel("POST", f"{base}/export", json=corps) or {}
         uuid = rep.get("export_uuid") or rep.get("uuid")
         if not uuid:
             raise ErreurDonnees(tr("Réponse inattendue de Vulnerability Management (pas d'identifiant d'export)."))
+        journal(tr("Export créé (identifiant {uuid}), en attente de Vulnerability Management…", uuid=uuid))
         t0, vus, recs, pause = time.time(), set(), [], 2.0
         while True:
             st = self._appel("GET", f"{base}/export/{uuid}/status") or {}
             etat = str(st.get("status") or "").upper()
             if etat in ("ERROR", "CANCELLED"):
                 raise ErreurDonnees(tr("L'export a échoué côté Vulnerability Management (état {etat}).", etat=etat))
-            dispo = [c for c in (st.get("chunks_available") or []) if c not in vus]
+            prets = st.get("chunks_available") or []
+            dispo = [c for c in prets if c not in vus]
+            journal(tr("État {etat} après {secondes} s : {prets} bloc(s) prêt(s), {telecharges} téléchargé(s).",
+                       etat=etat or "?", secondes=int(time.time() - t0), prets=len(prets), telecharges=len(vus))
+                    + (" " + tr("Nouvelle vérification dans {secondes} s.", secondes=round(pause)) if etat != "FINISHED" and not dispo else ""))
             for c in dispo:
                 bloc = self._appel("GET", f"{base}/export/{uuid}/chunks/{c}")
+                n = len(bloc) if isinstance(bloc, list) else 0
                 recs.extend(bloc if isinstance(bloc, list) else [])
                 vus.add(c)
+                journal(tr("Bloc {bloc} téléchargé : {n} enregistrement(s), {total} au total.", bloc=c, n=n, total=len(recs)))
                 if rappel:
                     rappel(len(recs))
-            if etat == "FINISHED" and len(vus) >= len(st.get("chunks_available") or []):
+            if etat == "FINISHED" and len(vus) >= len(prets):
+                journal(tr("Export terminé : {total} enregistrement(s) en {secondes} s.", total=len(recs), secondes=int(time.time() - t0)))
                 return recs
             if time.time() - t0 > self.delai_max:
                 raise ErreurDonnees(tr("L'export de Vulnerability Management dépasse {minutes} minutes : "
@@ -224,18 +234,21 @@ class Client:
             corps["filters"] = f
         return corps
 
-    def exporter_csv(self, source, chemin, severites=None, limite=2_000_000, rappel=None):
-        """Écrit le CSV. Renvoie {lignes, secondes, avertissement}."""
+    def exporter_csv(self, source, chemin, severites=None, limite=2_000_000, rappel=None, journal=None):
+        """Écrit le CSV. Renvoie {lignes, secondes, avertissement}. `journal(message)` : suivi des étapes (facultatif)."""
         t0, avert = time.time(), []
+        journal = journal or (lambda m: None)
         source = {**SOURCE_DEFAUT, **(source or {})}
+        journal(tr("Demande d'export des vulnérabilités à {url}.", url=self.url))
         try:
-            recs = self._export("vulns", self.corps_vulns(source, severites), rappel)
+            recs = self._export("vulns", self.corps_vulns(source, severites), rappel, journal)
         except ErreurDonnees as e:
             if getattr(e, "statut", None) != 400:
                 raise
             if P.tags_source(source):                        # sans filtre, le périmètre choisi serait ignoré en silence
                 raise ErreurDonnees(tr("Les filtres de tags ont été refusés par Vulnerability Management : {err}", err=e))
-            recs = self._export("vulns", self.corps_vulns(source, severites, filtres=False), rappel)     # filtres refusés : tri local
+            journal(tr("Filtres refusés par Vulnerability Management : nouvel export sans filtres, le tri sera fait ici."))
+            recs = self._export("vulns", self.corps_vulns(source, severites, filtres=False), rappel, journal)     # filtres refusés : tri local
             avert.append(tr("Les filtres de l'export ont été refusés par Vulnerability Management : le tri a été fait ici."))
         if len(recs) > limite:
             raise ErreurDonnees(tr("Plus de {limite} lignes : affinez la requête (plage d'adresses, sévérités).", limite=limite))
@@ -250,13 +263,17 @@ class Client:
             try:
                 filtres = {"cidr_range": str(source["cidr"]).strip()} if str(source.get("cidr") or "").strip() else {}
                 filtres.update(self.filtres_tags(source))
-                notes = notes_assets(self._export("assets/v2", {"chunk_size": 1000, **({"filters": filtres} if filtres else {})}))
+                journal(tr("Demande d'export des assets (notes ACR et AES)."))
+                notes = notes_assets(self._export("assets/v2", {"chunk_size": 1000, **({"filters": filtres} if filtres else {})},
+                                                  journal=journal))
                 df["acr"] = df["asset.id"].map(lambda a: (notes.get(str(a)) or (None, None))[0])
                 df["aes"] = df["asset.id"].map(lambda a: (notes.get(str(a)) or (None, None))[1])
                 if df["acr"].isna().all() and df["aes"].isna().all():
                     avert.append(tr("Aucune note ACR ou AES n'a été retrouvée pour ces machines."))
             except ErreurDonnees as e:
+                journal(tr("Notes ACR et AES indisponibles : {err}", err=e))
                 avert.append(tr("ACR et AES indisponibles ({err}) : le rapport est produit sans ces notes.", err=e))
+        journal(tr("Conversion de {n} ligne(s) et écriture du fichier CSV.", n=len(df)))
         out = VM.convertir(df, "api")
         if severites:
             out = out[out["Severity"].isin(set(severites) | {"Info"})]

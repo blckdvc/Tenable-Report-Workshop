@@ -15,6 +15,7 @@ import shutil
 import socket
 import tempfile
 import threading
+import time
 import unicodedata
 import uuid
 import webbrowser
@@ -53,6 +54,35 @@ MAIL_DEFAUT = {
 }
 EXPORTS = {}                                                 # id -> {chemin, nom, taille}
 VERROU = threading.Lock()
+JOURNAUX = {}                                                # id -> {lignes, fin, debut} : suivi des récupérations par API
+ID_JOURNAL = re.compile(r"^[A-Za-z0-9_-]{8,64}$")
+
+
+def ouvrir_journal(jid):
+    """Journal d'une récupération par API, lu par l'interface pendant qu'elle attend (GET /api/journal/<id>).
+    Renvoie la fonction qui ajoute une ligne horodatée, ou None si l'interface n'en a pas demandé."""
+    if not jid or not ID_JOURNAL.match(str(jid)):
+        return None
+    now = time.time()
+    with VERROU:
+        for k in [k for k, j in JOURNAUX.items() if now - j["debut"] > 3600]:      # journaux de plus d'une heure : oubliés
+            del JOURNAUX[k]
+        j = JOURNAUX[jid] = {"lignes": [], "fin": False, "debut": now}
+
+    def ecrire(message):
+        j["lignes"].append(f"{datetime.datetime.now().strftime('%H:%M:%S')}  {message}")
+    ecrire.journal = j
+    return ecrire
+
+
+@app.get("/api/journal/<jid>")
+def api_journal(jid):
+    j = JOURNAUX.get(jid)
+    if j is None:
+        return jsonify({"lignes": [], "fin": False})
+    depuis = request.args.get("depuis", "0")
+    depuis = int(depuis) if depuis.isdigit() else 0
+    return jsonify({"lignes": j["lignes"][depuis:], "fin": j["fin"]})
 
 
 # ---------------------------------------------------------------------------- langue
@@ -576,14 +606,23 @@ def api_sc_exporter():
     os.makedirs(EXPORTS_SC, exist_ok=True)
     nom = f"{slug(p['nom'])}_{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.csv"
     chemin = os.path.join(EXPORTS_SC, nom)
+    journal = ouvrir_journal(d.get("journal"))
     try:
         mod = MODELES.get(d.get("modele") or "", {})
-        res = client.exporter_csv(p["source"], chemin, perimetre_pour(mod, p["perimetre"]).get("severites"))
+        res = client.exporter_csv(p["source"], chemin, perimetre_pour(mod, p["perimetre"]).get("severites"), journal=journal)
+        if journal:
+            journal(tr("Contrôle du fichier obtenu."))
         R.read_export(chemin)                                    # même contrôle que pour un fichier déposé
-    except Exception:
+    except Exception as e:
         if os.path.exists(chemin):
             os.remove(chemin)
+        if journal:
+            journal(tr("Échec : {err}", err=e))
+            journal.journal["fin"] = True
         raise
+    if journal:
+        journal(tr("Terminé : {lignes} ligne(s) en {secondes} s.", lignes=res["lignes"], secondes=res["secondes"]))
+        journal.journal["fin"] = True
     eid = uuid.uuid4().hex[:12]
     EXPORTS[eid] = {"chemin": chemin, "nom": nom, "taille": os.path.getsize(chemin), "conserve": True, "portee": PT.portee(p["source"])}
     return jsonify({"id": eid, "nom": nom, "taille": EXPORTS[eid]["taille"], "dossier": EXPORTS_SC, "portee": EXPORTS[eid]["portee"], **res})
