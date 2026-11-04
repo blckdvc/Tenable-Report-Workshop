@@ -169,9 +169,10 @@ class Client:
         if not uuid:
             raise ErreurDonnees(tr("Réponse inattendue de Vulnerability Management (pas d'identifiant d'export)."))
         journal(tr("Export créé (identifiant {uuid}), en attente de Vulnerability Management…", uuid=uuid))
+        suivi = "assets/export" if base.startswith("assets") else f"{base}/export"   # v2 des assets : état et blocs sous /assets/export
         t0, vus, recs, pause = time.time(), set(), [], 2.0
         while True:
-            st = self._appel("GET", f"{base}/export/{uuid}/status") or {}
+            st = self._appel("GET", f"{suivi}/{uuid}/status") or {}
             etat = str(st.get("status") or "").upper()
             if etat in ("ERROR", "CANCELLED"):
                 raise ErreurDonnees(tr("L'export a échoué côté Vulnerability Management (état {etat}).", etat=etat))
@@ -181,7 +182,7 @@ class Client:
                        etat=etat or "?", secondes=int(time.time() - t0), prets=len(prets), telecharges=len(vus))
                     + (" " + tr("Nouvelle vérification dans {secondes} s.", secondes=round(pause)) if etat != "FINISHED" and not dispo else ""))
             for c in dispo:
-                bloc = self._appel("GET", f"{base}/export/{uuid}/chunks/{c}")
+                bloc = self._appel("GET", f"{suivi}/{uuid}/chunks/{c}")
                 n = len(bloc) if isinstance(bloc, list) else 0
                 recs.extend(bloc if isinstance(bloc, list) else [])
                 vus.add(c)
