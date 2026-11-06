@@ -59,12 +59,11 @@
       </div>
       <dl class="f-meta" id="f-meta"></dl>
     </div>
-    <div class="feuille feuille-corps" id="feuille-p2" hidden></div>
-    <div class="feuille feuille-corps" id="feuille-p3" hidden></div>
-    <div class="pages-apercu" id="pages-apercu" role="tablist" aria-label="Pages de l'aperçu" hidden>
-      <button type="button" role="tab" aria-selected="true" data-page="1">Couverture</button>
-      <button type="button" role="tab" aria-selected="false" data-page="2">Synthèse</button>
-      <button type="button" role="tab" aria-selected="false" data-page="3">Plan d'action</button>
+    <div class="feuille feuille-ex" id="feuille-ex" hidden data-i18n="non"></div>
+    <div class="nav-apercu" id="nav-apercu">
+      <button type="button" class="btn-discret" id="ap-prec" aria-label="Page précédente">‹</button>
+      <span id="ap-pos" aria-live="polite" data-i18n="non">1</span>
+      <button type="button" class="btn-discret" id="ap-suiv" aria-label="Page suivante">›</button>
     </div>
     <p class="epreuve-note" id="epreuve-note">Couverture du rapport, telle qu'elle sera imprimée.</p>
   </aside>
@@ -187,7 +186,7 @@
             <option value="Diffusion restreinte"><option value="Confidentiel"><option value="Projet"><option value="Brouillon">
           </datalist>
           <label class="case"><input type="checkbox" id="h-filigrane-couv" name="filigrane_couverture"> Afficher aussi sur la page de couverture</label>
-          <p class="aide">Texte en diagonale, discret, sur les pages du rapport PDF. Laissez vide pour n'en avoir aucun. Les fichiers Excel n'en portent pas. Quand un filigrane est défini, des onglets sous l'aperçu permettent de le voir sur deux pages intérieures d'exemple.</p>
+          <p class="aide">Texte en diagonale, discret, sur les pages du rapport PDF. Laissez vide pour n'en avoir aucun. Les fichiers Excel n'en portent pas. Quand un filigrane est défini, les pages suivantes de l'aperçu (boutons ‹ ›) permettent de le voir sur un exemple de rapport.</p>
         </div>
         <div class="champ">
           <label for="h-pied">Pied de page</label>
@@ -403,6 +402,19 @@
         <details class="avance" id="voir-requete-vm"><summary>Voir la requête envoyée à l'API</summary><pre id="requete-vm-json"></pre></details>
       </form>
       </div>
+      <h2 class="sec-titre" data-i18n="non">endoflife.date</h2>
+      <form class="formulaire carte" id="form-eol-connexion" autocomplete="off">
+        <h2>Connexion <small>commune à tous les profils</small></h2>
+        <p class="aide">Le rapport « Logiciels en fin de vie » interroge le site public endoflife.date (aucune clé). Si un proxy d'entreprise inspecte ce trafic, indiquez son certificat ici : le réglage ne concerne que ce service, pas Security Center ni Vulnerability Management.</p>
+        <div class="champ"><label for="eol-ca">Certificat de l'autorité (facultatif)</label>
+          <input id="eol-ca" name="ca_bundle" placeholder="Chemin d'un fichier .pem, pour un proxy d'inspection TLS" spellcheck="false"></div>
+        <label class="case"><input type="checkbox" id="eol-tls" name="verifier_tls"> Vérifier le certificat du serveur (à ne désactiver que pour un test)</label>
+        <div class="actions-form">
+          <button type="submit" class="btn-principal">Enregistrer la connexion</button>
+          <button type="button" class="btn-secondaire" id="btn-eol-tester">Tester la connexion</button>
+          <span class="statut" id="statut-eol-connexion" aria-live="polite"></span>
+        </div>
+      </form>
       <h2 class="sec-titre">Courriel</h2>
       <form class="formulaire carte" id="form-smtp" autocomplete="off">
         <h2>Serveur SMTP <small>commun à tous les profils</small></h2>
@@ -480,31 +492,6 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-<dialog id="exemple" class="exemple" aria-labelledby="ex-titre">
-  <header class="ex-tete">
-    <div>
-      <h2 id="ex-titre"></h2>
-      <p class="ex-sous" id="ex-sous"></p>
-    </div>
-    <button type="button" class="ex-fermer" id="ex-fermer" aria-label="Fermer" title="Fermer">×</button>
-  </header>
-  <div class="ex-corps">
-    <nav class="ex-vignettes" id="ex-vignettes" aria-label="Pages du rapport"></nav>
-    <section class="ex-scene">
-      <div class="ex-cadre" id="ex-cadre" tabindex="-1"></div>
-      <p class="ex-legende" id="ex-legende" aria-live="polite"></p>
-    </section>
-  </div>
-  <footer class="ex-pied">
-    <span class="ex-note">Données fictives : le contenu réel dépendra de votre export.</span>
-    <span class="ex-nav">
-      <button type="button" class="btn-discret" id="ex-prec" aria-label="Page précédente">‹</button>
-      <span id="ex-pos" aria-live="polite"></span>
-      <button type="button" class="btn-discret" id="ex-suiv" aria-label="Page suivante">›</button>
-    </span>
-    <a class="btn-discret" id="ex-ouvrir" target="_blank" rel="noopener">Ouvrir le fichier d'exemple</a>
-  </footer>
-</dialog>
 <dialog id="dlg-portee" class="dlg-portee" aria-labelledby="pt-titre">
   <header class="pt-tete">
     <h2 id="pt-titre">Choisir le périmètre</h2>

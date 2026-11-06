@@ -51,7 +51,7 @@
  "Filigrane": "Marca de agua",
  "Aucun": "Ninguna",
  "Afficher aussi sur la page de couverture": "Mostrar también en la portada",
- "Texte en diagonale, discret, sur les pages du rapport PDF. Laissez vide pour n'en avoir aucun. Les fichiers Excel n'en portent pas. Quand un filigrane est défini, des onglets sous l'aperçu permettent de le voir sur deux pages intérieures d'exemple.": "Texto diagonal y discreto en las páginas del informe PDF. Déjelo vacío para no usar ninguna. Los archivos Excel no la incluyen. Cuando se define una marca de agua, unas pestañas bajo la vista previa permiten verla en dos páginas interiores de ejemplo.",
+ "Texte en diagonale, discret, sur les pages du rapport PDF. Laissez vide pour n'en avoir aucun. Les fichiers Excel n'en portent pas. Quand un filigrane est défini, les pages suivantes de l'aperçu (boutons ‹ ›) permettent de le voir sur un exemple de rapport.": "Texto diagonal y discreto en las páginas del informe PDF. Déjelo vacío para no usar ninguna. Los archivos Excel no la incluyen. Cuando se define una marca de agua, las páginas siguientes de la vista previa (botones ‹ ›) permiten verla en un informe de ejemplo.",
  "Pied de page": "Pie de página",
  "Couleur principale": "Color principal",
  "Bleu France": "Azul Francia",
@@ -219,5 +219,6 @@
  "180 derniers jours": "Últimos 180 días",
  "365 derniers jours": "Últimos 365 días",
  "Toute la période": "Todo el periodo",
- "Une machine qui n'a pas été rescannée pendant cette période n'apparaît pas dans l'export.": "Una máquina que no se ha vuelto a escanear durante este periodo no aparece en la exportación."
+ "Une machine qui n'a pas été rescannée pendant cette période n'apparaît pas dans l'export.": "Una máquina que no se ha vuelto a escanear durante este periodo no aparece en la exportación.",
+ "Le rapport « Logiciels en fin de vie » interroge le site public endoflife.date (aucune clé). Si un proxy d'entreprise inspecte ce trafic, indiquez son certificat ici : le réglage ne concerne que ce service, pas Security Center ni Vulnerability Management.": "El informe «Software al final de su vida útil» consulta el sitio público endoflife.date (sin clave). Si un proxy de empresa inspecciona este tráfico, indique aquí su certificado: el ajuste solo afecta a este servicio, no a Security Center ni a Vulnerability Management."
 }

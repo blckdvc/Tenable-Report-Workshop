@@ -30,6 +30,7 @@ from moteur import portee as PT
 from moteur import regles as R
 from moteur import i18n
 from moteur import exemple as EX
+from moteur import eol as EOL
 from moteur.i18n import tr, plur
 from moteur import securitycenter as SC
 from moteur import vulnmanagement as VMC
@@ -430,6 +431,16 @@ def _export(eid):
 def api_apercu(eid):
     e = _export(eid)
     per = lire_profil(request.args["profil"])["perimetre"] if request.args.get("profil") else None
+    if e.get("cpe") and per is not None:                  # export récupéré pour le modèle « Logiciels en fin de vie » : chiffres propres à ce rapport
+        p = lire_profil(request.args["profil"])
+        vulns = Analyse(e["chemin"], perimetre_pour(MODELES["eol"], per), R.load_rules(), nom_fichier=e["nom"], portee=e.get("portee"))
+        try:
+            return jsonify(EOL.resume(EOL.AnalyseEol(e["cpe"], per, nom_fichier=e["nom"], portee=e.get("portee"), analyse=vulns,
+                                                     **EOL.reglages(CFG.lire()))))
+        except R.ErreurDonnees as err:                    # endoflife.date injoignable : au moins l'inventaire, et la cause
+            return jsonify({**EOL.apercu_csv(e["cpe"], per, e["nom"], e.get("portee")), "erreur_referentiel": str(err)})
+    if e.get("genre") == "cpe":                           # export de CPE (modèle « Logiciels en fin de vie »)
+        return jsonify(EOL.apercu_csv(e["chemin"], per, e["nom"], e.get("portee")))
     return jsonify(Analyse(e["chemin"], per, nom_fichier=e["nom"], portee=e.get("portee")).resume())
 
 
@@ -448,7 +459,7 @@ def api_export_supprimer(eid):
 @app.get("/api/modeles")
 def api_modeles():
     return jsonify([{"id": k, "nom": tr(m["nom"]), "description": tr(m["description"]), "format": m["format"],
-                     "exports": m["exports"]} for k, m in MODELES.items()])
+                     "exports": m["exports"], "collecte": m.get("collecte")} for k, m in MODELES.items()])
 
 
 @app.post("/api/generer")
@@ -461,7 +472,15 @@ def api_generer():
     i18n.set_langue(p["langue"])              # le rapport est produit dans la langue du profil
     hab = habillage_effectif(p)
     regles = R.load_rules()
-    if modele["exports"] == 2:
+    if modele.get("collecte") == "cpe":
+        e1 = _export(d.get("export"))
+        if not e1.get("cpe"):
+            return erreur(tr("Cet export ne contient pas les logiciels (CPE) nécessaires. Sélectionnez d'abord le modèle « Logiciels en fin de vie », puis cliquez sur « Récupérer depuis l'API » : les CPE sont collectés en même temps que les vulnérabilités. Un fichier CSV déposé à la main ne convient pas."))
+        vulns = Analyse(e1["chemin"], perimetre_pour(modele, p["perimetre"]), regles, nom_fichier=e1["nom"], portee=e1.get("portee"))
+        a1, a2 = EOL.AnalyseEol(e1["cpe"], p["perimetre"], nom_fichier=e1["nom"], portee=e1.get("portee"), analyse=vulns,
+                                **EOL.reglages(CFG.lire())), None
+        base = os.path.splitext(e1["nom"])[0]
+    elif modele["exports"] == 2:
         if not d.get("export") or not d.get("export2"):
             return erreur(tr("La comparaison demande deux exports : le précédent et le récent."))
         e1, e2 = _export(d["export"]), _export(d["export2"])
@@ -561,6 +580,11 @@ def api_sc_tester():
     return jsonify(SC.Client(_cfg_section("securitycenter")).tester())
 
 
+@app.post("/api/endoflife/tester")
+def api_eol_tester():
+    return jsonify(EOL.tester(_cfg_section("endoflife")))
+
+
 @app.post("/api/vm/tester")
 def api_vm_tester():
     return jsonify(VMC.Client(_cfg_section("vulnmanagement")).tester())
@@ -620,8 +644,10 @@ def api_sc_exporter():
     client = VMC.Client(CFG.lire()["vulnmanagement"]) if vm else SC.Client(CFG.lire()["securitycenter"])
     dossier = EXPORTS_VM if vm else EXPORTS_SC                  # un dossier par produit
     os.makedirs(dossier, exist_ok=True)
+    cpe = (MODELES.get(d.get("modele") or "") or {}).get("collecte") == "cpe"      # modèle alimenté par les CPE du plugin 45590
     nom = f"{slug(p['nom'])}_{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.csv"
     chemin = os.path.join(dossier, nom)
+    chemin_cpe = chemin[:-4] + "_cpe.csv" if cpe else None
     journal = ouvrir_journal(d.get("journal"))
     try:
         mod = MODELES.get(d.get("modele") or "", {})
@@ -630,9 +656,12 @@ def api_sc_exporter():
         if journal:
             journal(tr("Contrôle du fichier obtenu."))
         R.read_export(chemin)                                    # même contrôle que pour un fichier déposé
+        if cpe:                                                  # en plus : CPE du plugin 45590, dans un second fichier
+            EOL.collecter(client, vm, p["source"], chemin_cpe, journal=journal, portee=PT.portee(p["source"]))
     except Exception as e:
-        if os.path.exists(chemin):
-            os.remove(chemin)
+        for f in (chemin, chemin_cpe):
+            if f and os.path.exists(f):
+                os.remove(f)
         if journal:
             journal(tr("Échec : {err}", err=e))
             journal.journal["fin"] = True
@@ -641,7 +670,8 @@ def api_sc_exporter():
         journal(tr("Terminé : {lignes} ligne(s) en {secondes} s.", lignes=res["lignes"], secondes=res["secondes"]))
         journal.journal["fin"] = True
     eid = uuid.uuid4().hex[:12]
-    EXPORTS[eid] = {"chemin": chemin, "nom": nom, "taille": os.path.getsize(chemin), "conserve": True, "portee": PT.portee(p["source"])}
+    EXPORTS[eid] = {"chemin": chemin, "nom": nom, "taille": os.path.getsize(chemin), "conserve": True, "portee": PT.portee(p["source"]),
+                    "cpe": chemin_cpe}
     return jsonify({"id": eid, "nom": nom, "taille": EXPORTS[eid]["taille"], "dossier": dossier, "portee": EXPORTS[eid]["portee"], **res})
 
 
@@ -684,13 +714,16 @@ def api_rapport_envoyer(nom):
 EXEMPLES = os.path.join(SESSION, "exemples")
 
 
-@app.get("/api/modeles/<mid>/exemple")
+@app.route("/api/modeles/<mid>/exemple", methods=["GET", "POST"])
 def api_exemple(mid):
     """Rapport d'exemple (données fictives, habillage et langue du profil) : pages en images, ou feuilles pour Excel."""
     modele = MODELES.get(mid)
     if not modele:
         return erreur(tr("Modèle inconnu."))
-    p = lire_profil(request.args.get("profil") or "")
+    corps = (request.get_json(silent=True) or {}) if request.method == "POST" else {}
+    p = lire_profil(corps.get("profil") or request.args.get("profil") or "")
+    if isinstance(corps.get("habillage"), dict):           # habillage en cours de modification, pas encore enregistré
+        p["habillage"] = {**p["habillage"], **corps["habillage"]}
     i18n.set_langue(p["langue"])
     hab = habillage_effectif(p)
     logo = hab.get("logo")

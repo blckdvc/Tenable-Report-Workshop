@@ -102,8 +102,21 @@ Colonnes nécessaires : `Plugin`, `Plugin Name`, `Severity`, `IP Address`. Colon
 | Comparaison de deux exports | PDF | Évolution du score de risque, vulnérabilités corrigées, nouvelles et persistantes, avancement par solution et par machine |
 | Exposition PHP2Shell | PDF | Rapport thématique sur les failles PHP CVE-2026-109618 et CVE-2026-109619 : situation de la menace, machines concernées classées par priorité (AES, ACR, service joignable), plan d'action, mesures provisoires, vérification de compromission, fiabilité de la détection, couverture des 43 plugins Nessus, sources |
 | Plan d'action Excel | XLSX | Suivi des solutions (responsable, échéance, statut), statut par machine, détail des vulnérabilités, indicateurs d'avancement recalculés automatiquement |
+| Logiciels en fin de vie | PDF | Logiciels dont le support est dépassé ou se termine sous 12 mois, d'après les CPE détectés par Tenable et les dates d'endoflife.date : synthèse, calendrier, inventaire, fiches par produit, méthode |
 
 Pour la comparaison, chargez d'abord l'export précédent, puis l'export récent. Les deux sont analysés avec le même périmètre et les mêmes règles. Une vulnérabilité n'est comptée comme corrigée que si sa machine figure dans les deux exports.
+
+### Logiciels en fin de vie
+
+Ce modèle fonctionne avec Security Center et Vulnerability Management. Il part de la sortie du plugin 45590 (Common Platform Enumeration), puis rapproche chaque CPE d'endoflife.date. Il se lance uniquement par « récupérer depuis l'API » (pas de dépôt de fichier) : l'export de vulnérabilités habituel est récupéré comme pour les autres modèles (mêmes statistiques dans l'aperçu), puis un second fichier `…_cpe.csv` reçoit les CPE. Le rapport ajoute alors les vulnérabilités ouvertes et l'AES par produit.
+
+- **Scan authentifié ou agent obligatoire** : sans identifiants, le plugin 45590 ne rend rien.
+- **Complétude limitée aux logiciels qui déclarent un CPE** (cpe:/), ce qui est en principe le cas des logiciels installés proprement et reconnus par Tenable.
+- Les CPE absents d'endoflife.date, sans version ou sans cycle connu sont listés en fin de rapport (les 15 plus répandus).
+- Le poste doit joindre https://endoflife.date ; sinon la génération s'arrête avec un message d'erreur. Si un proxy d'entreprise inspecte le trafic TLS, indiquez son certificat (PEM) dans l'onglet Configuration, section « endoflife.date » : ce réglage est propre à ce service, distinct de Security Center et de Vulnerability Management. Le bouton « Tester la connexion » le vérifie sans lancer de rapport.
+- Traductions : anglais, espagnol et italien dans `moteur/langues/eol.json` (rapport, messages d'erreur, journal).
+- En ligne de commande : même option que pour les autres modèles ; avec un fichier, le `…_cpe.csv` doit se trouver à côté de l'export.
+
 
 ## Règles de traduction
 

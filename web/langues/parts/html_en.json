@@ -51,7 +51,7 @@
  "Filigrane": "Watermark",
  "Aucun": "None",
  "Afficher aussi sur la page de couverture": "Also show on the cover page",
- "Texte en diagonale, discret, sur les pages du rapport PDF. Laissez vide pour n'en avoir aucun. Les fichiers Excel n'en portent pas. Quand un filigrane est défini, des onglets sous l'aperçu permettent de le voir sur deux pages intérieures d'exemple.": "Discreet diagonal text on the pages of the PDF report. Leave empty for none. Excel files do not carry one. When a watermark is set, tabs below the preview let you see it on two sample inner pages.",
+ "Texte en diagonale, discret, sur les pages du rapport PDF. Laissez vide pour n'en avoir aucun. Les fichiers Excel n'en portent pas. Quand un filigrane est défini, les pages suivantes de l'aperçu (boutons ‹ ›) permettent de le voir sur un exemple de rapport.": "Discreet diagonal text on the pages of the PDF report. Leave empty for none. Excel files do not carry one. When a watermark is set, the following preview pages (‹ › buttons) let you see it on a sample report.",
  "Pied de page": "Footer",
  "Couleur principale": "Main colour",
  "Bleu France": "France blue",
@@ -219,5 +219,6 @@
  "180 derniers jours": "Last 180 days",
  "365 derniers jours": "Last 365 days",
  "Toute la période": "Whole period",
- "Une machine qui n'a pas été rescannée pendant cette période n'apparaît pas dans l'export.": "A machine that has not been rescanned during this period does not appear in the export."
+ "Une machine qui n'a pas été rescannée pendant cette période n'apparaît pas dans l'export.": "A machine that has not been rescanned during this period does not appear in the export.",
+ "Le rapport « Logiciels en fin de vie » interroge le site public endoflife.date (aucune clé). Si un proxy d'entreprise inspecte ce trafic, indiquez son certificat ici : le réglage ne concerne que ce service, pas Security Center ni Vulnerability Management.": "The “End-of-life software” report queries the public site endoflife.date (no key needed). If a corporate proxy inspects this traffic, enter its certificate here: the setting applies to this service only, not to Security Center or Vulnerability Management."
 }

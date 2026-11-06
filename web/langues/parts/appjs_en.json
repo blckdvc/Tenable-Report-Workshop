@@ -183,5 +183,22 @@
  "vues depuis {n} jours": "seen in the last {n} days",
  "Données issues de Tenable Vulnerability Management": "Data from Tenable Vulnerability Management",
  "Périmètre : {p}": "Scope: {p}",
- "Données issues de Tenable Security Center": "Data from Tenable Security Center"
+ "Données issues de Tenable Security Center": "Data from Tenable Security Center",
+ "machines inventoriées": "machines inventoried",
+ "logiciels distincts (CPE)": "distinct software items (CPE)",
+ "Les produits en fin de vie sont identifiés à la génération du rapport, d'après endoflife.date (accès Internet nécessaire).": "End-of-life products are identified when the report is generated, based on endoflife.date (Internet access required).",
+ "Rapport de logiciels en fin de vie": "End-of-life software report",
+ "données fictives, le contenu réel dépendra de votre export": "fictitious data, the actual content will depend on your export",
+ "produits en fin de vie ou proches de l'être": "products end-of-life or close to it",
+ "produits déjà hors support": "products already out of support",
+ "machines concernées": "machines affected",
+ "Hors support": "Out of support",
+ "Sous 12 mois": "Within 12 months",
+ "Situation des produits": "Status of the products",
+ "Aucun produit en fin de vie ni proche de l'être parmi ceux que couvre endoflife.date.": "No end-of-life product, or close to it, among those covered by endoflife.date.",
+ "{n} vulnérabilités ouvertes sur les produits hors support.": "{n} open vulnerabilities on out-of-support products.",
+ "Analyse des logiciels détectés d'après endoflife.date…": "Analysing the detected software against endoflife.date…",
+ "machines concernées, sur {n}": "machines affected, out of {n}",
+ "Connexion réussie : {n} produits connus d'endoflife.date.": "Connection successful: {n} products known to endoflife.date.",
+ "Logiciels détectés non rapprochés d'endoflife.date : {n} (listés en fin de rapport).": "Detected software not matched to endoflife.date: {n} (listed at the end of the report)."
 }

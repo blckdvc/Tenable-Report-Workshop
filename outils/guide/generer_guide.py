@@ -264,7 +264,8 @@ def contenu():
           p("During an API retrieval, a **Retrieval log** box opens under the fetch button and fills in live: export created, "
             "status checks, chunks or pages received, asset export, conversion. If the retrieval fails, the last line gives the "
             "cause. The box can be folded."),
-          F.une("generer_modeles.png", "Template choice and the Generate button. “View an example” opens the template page by page.", 0.55),
+          F.une("generer_modeles.png", "Template choice and the Generate button. “View an example” turns the cover preview into the real template, page by page.", 0.55),
+          p("**View an example** does not open a dialog: the preview on the right of the page becomes the selected template, filled with fictitious data and with the branding and language of the profile. Use the **‹** and **›** arrows under the preview to move through the pages, and the template menu to switch template; the cover you were editing comes back with the first page."),
           *h2("Branding"),
           p("Title, subtitle, client, distribution mention (a small badge on the cover, which can also appear in the header of "
             "inner pages), watermark (diagonal text on PDF pages, for example “Restricted distribution”, with a box to keep it "
@@ -291,6 +292,10 @@ def contenu():
             "section of the chosen product (server and API keys, shared by all profiles; the export query, specific to the "
             "profile) and **Email** (SMTP server, shared; default message, specific to the profile). See chapters 5 and 9."),
           F.une("configuration.png", "The Configuration tab. With Vulnerability Management, the export query also offers the detection period.", 0.8),
+          p("A fourth block, **endoflife.date**, is used only by the end-of-life software report. It has its own CA certificate "
+            "field and a “verify TLS” box, because a TLS-inspecting proxy often affects this public site and not your Tenable "
+            "servers. **Test endoflife.date** checks the connection."),
+          F.une("eol_configuration.png", "The endoflife.date block: its own certificate, independent from Security Center and Vulnerability Management.", 0.8),
           PageBreak(),
 
           # 5 --------------------------------------------------------------
@@ -351,7 +356,7 @@ def contenu():
 
           # 6 --------------------------------------------------------------
           h1("6. The report templates"),
-          p("Six templates are available. “View an example” next to each one produces the real report from fictitious data, "
+          p("Seven templates are available. “View an example” next to each one produces the real report from fictitious data, "
             "with the branding and language of the active profile, and shows it page by page.", LEAD),
           *tableau(["Template", "Format", "What it contains"], [
               ["Complete remediation plan", "PDF", "How-to-read guide, graphical summary, action plan, detail by solution with the "
@@ -365,6 +370,9 @@ def contenu():
               ["PHP2Shell exposure", "PDF", "Dedicated report on the PHP flaws CVE-2026-109618 and CVE-2026-109619: threat summary, "
                "every machine concerned ranked by priority, action plan, interim measures, compromise checklist, detection "
                "reliability, plugin coverage and sources."],
+              ["End-of-life software", "PDF", "Software found on your machines (CPE, plugin 45590) matched with endoflife.date: "
+               "summary, inventory by product with end-of-support dates, one sheet per product with the machines and the open "
+               "vulnerabilities, method and limits."],
               ["Excel action plan", "XLSX", "Tracking workbook: owner, due date and status per solution, status per machine, "
                "vulnerability detail, progress indicators that recalculate."]], [0.24, 0.1, 0.66]),
           p("In every PDF the page that follows the cover is “How to read this report”: method, definitions of VPR, ACR, AES "
@@ -372,12 +380,30 @@ def contenu():
           p("In a comparison, a vulnerability counts as fixed only if its machine was rescanned, that is, it appears in the "
             "recent export with any finding, Info included. A machine whose last vulnerability was fixed therefore gets the "
             "credit."),
-          F.une("exemple.png", "“View an example”: thumbnails on the left, click the page to zoom, arrow keys to navigate.", 0.55),
+          F.une("exemple.png", "“View an example”: the preview shows the selected template; ‹ › move through its pages.", 0.55),
           *h2("What the pages look like"),
           F.deux("page_guide_lecture.png", "“How to read this report”, always page 2.", "page_synthese.png",
                  "Summary with the Cyber Exposure Score posture."),
           F.deux("page_plan.png", "Action plan, ranked by risk removed.", "page_detail.png", "Detail by solution, with the machines to treat."),
           F.deux("page_fiche.png", "A sheet for one machine.", "page_comparaison.png", "Comparison summary."),
+          *h2("The end-of-life software template"),
+          p("This report answers one question: which software installed on your machines is no longer supported by its "
+            "vendor, or soon will not be? The software list comes from the CPE that Nessus reports with plugin 45590 "
+            "(Common Platform Enumeration), matched with the lifecycle dates of endoflife.date."),
+          liste(["**Fetch the data with the template selected.** In the Generate tab, choose the end-of-life template "
+                 "before fetching through the API: the CPE are collected together with the usual vulnerability export, "
+                 "so the vulnerability statistics are kept. The summary shown after the fetch adds the end-of-life figures: "
+                 "products out of support, products ending within 12 months, machines concerned, open vulnerabilities on "
+                 "unsupported products.",
+                 "**Needs Internet access** to endoflife.date from the computer running the application. Behind a TLS-inspecting "
+                 "proxy, give the proxy's root certificate in the endoflife.date block of the Configuration tab.",
+                 "**Software that declares no CPE, or machines scanned without credentials or agent, do not appear.** The report "
+                 "says so, and lists the detected software that could not be matched."], numerotee=False),
+          F.une("eol_generer.png", "The Generate tab with the end-of-life template: the summary adds the end-of-life figures.", 0.8),
+          F.deux("page_eol_synthese.png", "Summary: status of the products and most widespread ones.", "page_eol_inventaire.png",
+                 "Inventory of the products with their end-of-support dates."),
+          F.deux("page_eol_fiche.png", "One sheet per product: machines and open vulnerabilities.", "page_eol_methode.png",
+                 "Method and limits."),
           *h2("The PHP2Shell template"),
           p("PHP2Shell is the name given to two critical PHP flaws, CVE-2026-109618 and CVE-2026-109619: unauthenticated remote "
             "code execution, exploited in the wild since 21 October 2026. This template isolates, in your export, every finding "

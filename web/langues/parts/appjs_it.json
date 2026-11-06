@@ -183,5 +183,22 @@
  "vues depuis {n} jours": "rilevate negli ultimi {n} giorni",
  "Données issues de Tenable Vulnerability Management": "Dati provenienti da Tenable Vulnerability Management",
  "Périmètre : {p}": "Perimetro: {p}",
- "Données issues de Tenable Security Center": "Dati provenienti da Tenable Security Center"
+ "Données issues de Tenable Security Center": "Dati provenienti da Tenable Security Center",
+ "machines inventoriées": "macchine inventariate",
+ "logiciels distincts (CPE)": "software distinti (CPE)",
+ "Les produits en fin de vie sont identifiés à la génération du rapport, d'après endoflife.date (accès Internet nécessaire).": "I prodotti a fine vita vengono individuati alla generazione del rapporto, in base a endoflife.date (necessario l'accesso a Internet).",
+ "Rapport de logiciels en fin de vie": "Rapporto sul software a fine vita",
+ "données fictives, le contenu réel dépendra de votre export": "dati fittizi, il contenuto reale dipenderà dalla vostra esportazione",
+ "produits en fin de vie ou proches de l'être": "prodotti a fine vita o prossimi ad esserlo",
+ "produits déjà hors support": "prodotti già fuori supporto",
+ "machines concernées": "macchine interessate",
+ "Hors support": "Fuori supporto",
+ "Sous 12 mois": "Entro 12 mesi",
+ "Situation des produits": "Situazione dei prodotti",
+ "Aucun produit en fin de vie ni proche de l'être parmi ceux que couvre endoflife.date.": "Nessun prodotto a fine vita, o prossimo ad esserlo, tra quelli coperti da endoflife.date.",
+ "{n} vulnérabilités ouvertes sur les produits hors support.": "{n} vulnerabilità aperte sui prodotti fuori supporto.",
+ "Analyse des logiciels détectés d'après endoflife.date…": "Analisi del software rilevato con endoflife.date…",
+ "machines concernées, sur {n}": "macchine interessate, su {n}",
+ "Connexion réussie : {n} produits connus d'endoflife.date.": "Connessione riuscita: {n} prodotti noti a endoflife.date.",
+ "Logiciels détectés non rapprochés d'endoflife.date : {n} (listés en fin de rapport).": "Software rilevato non abbinato a endoflife.date: {n} (elencato in fondo al rapporto)."
 }

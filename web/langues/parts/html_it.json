@@ -51,7 +51,7 @@
  "Filigrane": "Filigrana",
  "Aucun": "Nessuna",
  "Afficher aussi sur la page de couverture": "Mostra anche sulla copertina",
- "Texte en diagonale, discret, sur les pages du rapport PDF. Laissez vide pour n'en avoir aucun. Les fichiers Excel n'en portent pas. Quand un filigrane est défini, des onglets sous l'aperçu permettent de le voir sur deux pages intérieures d'exemple.": "Testo diagonale e discreto sulle pagine del report PDF. Lasci vuoto per non averne alcuna. I file Excel non la riportano. Quando è definita una filigrana, alcune schede sotto l'anteprima consentono di vederla su due pagine interne di esempio.",
+ "Texte en diagonale, discret, sur les pages du rapport PDF. Laissez vide pour n'en avoir aucun. Les fichiers Excel n'en portent pas. Quand un filigrane est défini, les pages suivantes de l'aperçu (boutons ‹ ›) permettent de le voir sur un exemple de rapport.": "Testo diagonale e discreto sulle pagine del report PDF. Lasci vuoto per non averne alcuna. I file Excel non la riportano. Quando è definita una filigrana, le pagine successive dell'anteprima (pulsanti ‹ ›) consentono di vederla su un rapporto di esempio.",
  "Pied de page": "Piè di pagina",
  "Couleur principale": "Colore principale",
  "Bleu France": "Blu Francia",
@@ -219,5 +219,6 @@
  "180 derniers jours": "Ultimi 180 giorni",
  "365 derniers jours": "Ultimi 365 giorni",
  "Toute la période": "Intero periodo",
- "Une machine qui n'a pas été rescannée pendant cette période n'apparaît pas dans l'export.": "Una macchina non riscansionata in questo periodo non compare nell'esportazione."
+ "Une machine qui n'a pas été rescannée pendant cette période n'apparaît pas dans l'export.": "Una macchina non riscansionata in questo periodo non compare nell'esportazione.",
+ "Le rapport « Logiciels en fin de vie » interroge le site public endoflife.date (aucune clé). Si un proxy d'entreprise inspecte ce trafic, indiquez son certificat ici : le réglage ne concerne que ce service, pas Security Center ni Vulnerability Management.": "Il rapporto «Software a fine vita» interroga il sito pubblico endoflife.date (nessuna chiave). Se un proxy aziendale ispeziona questo traffico, indicare qui il suo certificato: l'impostazione riguarda solo questo servizio, non Security Center né Vulnerability Management."
 }

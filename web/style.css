@@ -61,7 +61,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 /* ------------------------------------------------------------ disposition */
 .atelier {
-  display: grid; grid-template-columns: minmax(260px, 340px) minmax(0, 1fr); gap: 32px;
+  display: grid; grid-template-columns: clamp(260px, calc((100vh - 240px) * 0.7071), 560px) minmax(0, 1fr); gap: 32px;      /* la feuille A4 s'adapte à la hauteur de la fenêtre */
   max-width: 1320px; margin: 0 auto; padding: 32px 28px 64px;
 }
 .epreuve-col { position: sticky; top: 92px; align-self: start; }
@@ -556,3 +556,12 @@ html[data-theme="tenable"] .champ-atelier { display: none; }
 .pt-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 html[data-theme="tenable"] .dlg-portee { box-shadow: none; border: 1px solid #1E2426; border-radius: 0; }
 html[data-theme="tenable"] .portee { border-radius: 0; }
+
+/* ------------------------------------------------------------ aperçu : couverture réelle puis pages d'un rapport d'exemple */
+.feuille-ex { padding: 0; display: block; }
+.feuille-ex img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.feuille-ex.xl { aspect-ratio: auto; max-height: 70vh; overflow: auto; }
+.nav-apercu { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 12px; font-variant-numeric: tabular-nums; }
+.nav-apercu button { min-width: 40px; font-size: 18px; line-height: 1; }
+
+.feuille-ex img { image-rendering: auto; }
