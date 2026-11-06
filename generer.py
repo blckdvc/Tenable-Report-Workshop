@@ -20,6 +20,7 @@ import sys
 
 from moteur import config as CFG
 from moteur import courriel as MAIL
+from moteur import eol as EOL
 from moteur import portee as PT
 from moteur import regles as R
 from moteur import securitycenter as SC
@@ -83,9 +84,11 @@ if args.securitycenter:
         dossier = os.path.join(RACINE, "exports_vulnerability_management" if vm else "exports_security_center")
         nom = f"{args.profil or 'defaut'}_{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}.csv"
         client = VMC.Client(CFG.lire()["vulnmanagement"]) if vm else SC.Client(CFG.lire()["securitycenter"])
-        res = client.exporter_csv(
-            {**SC.SOURCE_DEFAUT, **VMC.SOURCE_DEFAUT, **(source or {})}, os.path.join(dossier, nom), perimetre_pour(MODELES[args.modele], perimetre).get("severites"),
-            portee=PT.portee({**SC.SOURCE_DEFAUT, **VMC.SOURCE_DEFAUT, **(source or {})}))
+        src = {**SC.SOURCE_DEFAUT, **VMC.SOURCE_DEFAUT, **(source or {})}
+        res = client.exporter_csv(src, os.path.join(dossier, nom), perimetre_pour(MODELES[args.modele], perimetre).get("severites"),
+                                  portee=PT.portee(src))
+        if m.get("collecte") == "cpe":                  # en plus : CPE du plugin 45590, dans un second fichier « _cpe.csv »
+            EOL.collecter(client, vm, src, os.path.join(dossier, nom[:-4] + "_cpe.csv"), portee=PT.portee(src))
     except R.ErreurDonnees as e:
         sys.exit(tr("Erreur : {err}", err=e))
     args.exports.append(os.path.join(dossier, nom))
@@ -97,14 +100,28 @@ if args.securitycenter:
 sortie = args.sortie or f"rapport_{args.modele}.{m['format']}"
 try:
     portee_api = PT.portee({**SC.SOURCE_DEFAUT, **VMC.SOURCE_DEFAUT, **(source or {})}) if args.securitycenter else None
-    analyses = [Analyse(e, perimetre_pour(m, perimetre), nom_fichier=os.path.basename(e),
-                        portee=portee_api if e == args.exports[-1] and args.securitycenter else None) for e in args.exports]
+    if m.get("collecte") == "cpe":
+        analyses = []
+        for e in args.exports:                          # export de vulnérabilités + fichier de CPE voisin « <export>_cpe.csv »
+            fichier_cpe = e[:-4] + "_cpe.csv"
+            if not os.path.exists(fichier_cpe):
+                sys.exit(tr("Fichier de CPE introuvable : {chemin} (il est créé avec l'option Security Center / Vulnerability Management).", chemin=fichier_cpe))
+            vulns = Analyse(e, perimetre_pour(m, perimetre), nom_fichier=os.path.basename(e), portee=portee_api)
+            analyses.append(EOL.AnalyseEol(fichier_cpe, perimetre, nom_fichier=os.path.basename(e), portee=portee_api, analyse=vulns,
+                                           **EOL.reglages(CFG.lire())))
+    else:
+        analyses = [Analyse(e, perimetre_pour(m, perimetre), nom_fichier=os.path.basename(e),
+                            portee=portee_api if e == args.exports[-1] and args.securitycenter else None) for e in args.exports]
     m["module"].generer(*analyses, habillage, sortie)
 except R.ErreurDonnees as e:
     sys.exit(tr("Erreur : {err}", err=e))
 an = analyses[-1]
-print(tr("Rapport généré — {modele} : {fichier} ({machines}, {vulns}, {solutions})", modele=tr(m["nom"]), fichier=sortie,
-         machines=plur(an.n_hosts, "machine"), vulns=plur(len(an.occ), "vulnérabilité"), solutions=plur(len(an.sols), "solution")))
+if m.get("collecte") == "cpe":
+    print(tr("Rapport généré — {modele} : {fichier} ({machines}, {produits})", modele=tr(m["nom"]), fichier=sortie,
+             machines=plur(an.n_hosts, "machine"), produits=plur(len(an.produits), "produit")))
+else:
+    print(tr("Rapport généré — {modele} : {fichier} ({machines}, {vulns}, {solutions})", modele=tr(m["nom"]), fichier=sortie,
+             machines=plur(an.n_hosts, "machine"), vulns=plur(len(an.occ), "vulnérabilité"), solutions=plur(len(an.sols), "solution")))
 if an.sans_regle:
     print(tr("{n} intitulé(s) sans règle dédiée ; à compléter dans l'onglet Règles de l'application.", n=len(an.sans_regle)))
 

@@ -183,5 +183,22 @@
  "vues depuis {n} jours": "vistas en los últimos {n} días",
  "Données issues de Tenable Vulnerability Management": "Datos procedentes de Tenable Vulnerability Management",
  "Périmètre : {p}": "Alcance: {p}",
- "Données issues de Tenable Security Center": "Datos procedentes de Tenable Security Center"
+ "Données issues de Tenable Security Center": "Datos procedentes de Tenable Security Center",
+ "machines inventoriées": "equipos inventariados",
+ "logiciels distincts (CPE)": "programas distintos (CPE)",
+ "Les produits en fin de vie sont identifiés à la génération du rapport, d'après endoflife.date (accès Internet nécessaire).": "Los productos al final de su vida útil se identifican al generar el informe, a partir de endoflife.date (se requiere acceso a Internet).",
+ "Rapport de logiciels en fin de vie": "Informe de software al final de su vida útil",
+ "données fictives, le contenu réel dépendra de votre export": "datos ficticios, el contenido real dependerá de su exportación",
+ "produits en fin de vie ou proches de l'être": "productos al final de su vida útil o cerca de ella",
+ "produits déjà hors support": "productos que ya no tienen soporte",
+ "machines concernées": "equipos afectados",
+ "Hors support": "Sin soporte",
+ "Sous 12 mois": "En menos de 12 meses",
+ "Situation des produits": "Situación de los productos",
+ "Aucun produit en fin de vie ni proche de l'être parmi ceux que couvre endoflife.date.": "Ningún producto al final de su vida útil, ni cerca de ella, entre los que cubre endoflife.date.",
+ "{n} vulnérabilités ouvertes sur les produits hors support.": "{n} vulnerabilidades abiertas en los productos sin soporte.",
+ "Analyse des logiciels détectés d'après endoflife.date…": "Analizando el software detectado con endoflife.date…",
+ "machines concernées, sur {n}": "equipos afectados, de {n}",
+ "Connexion réussie : {n} produits connus d'endoflife.date.": "Conexión correcta: {n} productos conocidos por endoflife.date.",
+ "Logiciels détectés non rapprochés d'endoflife.date : {n} (listés en fin de rapport).": "Software detectado sin cotejar con endoflife.date: {n} (se lista al final del informe)."
 }

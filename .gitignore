@@ -18,3 +18,4 @@ venv/
 
 # Aeonik is a commercial typeface: not distributed with the project (drop the files in polices/ to use it)
 polices/Aeonik-*.ttf
+config.json.tmp

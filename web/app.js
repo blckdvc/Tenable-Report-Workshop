@@ -4,6 +4,7 @@
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const SEV_EOL = [["hors_support", "Hors support", "--critique"], ["sous_12_mois", "Sous 12 mois", "--elevee"]];
 const SEV = [["Critical", "Critique", "--critique"], ["High", "Élevée", "--elevee"], ["Medium", "Moyenne", "--moyenne"], ["Low", "Faible", "--faible"]];
 const SEV_FR = Object.fromEntries(SEV.map(([k, v]) => [k, v]));
 const MOIS = "janvier février mars avril mai juin juillet août septembre octobre novembre décembre".split(" ");
@@ -105,11 +106,11 @@ function epreuve() {
   const surCouv = h.filigrane_couverture !== false;
   const poser = (feuille, actif) => { const f = $(".f-filigrane", feuille); f.hidden = !(fil && actif); f.textContent = fil; f.style.fontSize = taille; };
   poser($("#feuille"), surCouv);
-  pagesFictives(h, p, fil, taille);
-  const pdf = !m0 || m0.format === "pdf";
-  etat.pagesVisibles = pdf && !!(fil || (h.mention_interieur && h.mention));   // seulement si une marque s'applique aux pages intérieures
   $("#f-mention").textContent = h.mention || ""; $("#f-mention").hidden = !h.mention;
-  const titre = h.titre || t("Rapport de vulnérabilités");
+  const mt = etat.modeles.find((x) => x.id === etat.modele);
+  const parDefaut = ["Rapport de vulnérabilités", t("Rapport de vulnérabilités")];
+  const titre = (mt && mt.collecte === "cpe" && (!h.titre || parDefaut.includes(h.titre))) ? t("Rapport de logiciels en fin de vie")      // titre propre au modèle
+    : (h.titre || t("Rapport de vulnérabilités"));
   if (ten) {                                                  // thème Tenable : dernier mot surligné (bande Hilighter, texte Soft Black)
     const i = titre.lastIndexOf(" ") + 1;
     $("#f-titre").innerHTML = `${esc(titre.slice(0, i))}<mark>${esc(titre.slice(i))}</mark>`;
@@ -124,108 +125,77 @@ function epreuve() {
   } else {
     meta.push([t("Source des données"), t(etat.source === "sc" && produit() === "vm" ? "Export Tenable Vulnerability Management" : "Export Tenable Security Center")]);
     const a = etat.apercu;
-    const vol = a ? `${tp(a.machines, "machine", "machines")}, ${tp(a.vulnerabilites, "vulnérabilité", "vulnérabilités")}` : t("charger un export");
+    const vol = a ? (a.genre === "cpe" || a.genre === "eol" || a.erreur_referentiel ? tp(a.machines, "machine", "machines") : `${tp(a.machines, "machine", "machines")}, ${tp(a.vulnerabilites, "vulnérabilité", "vulnérabilités")}`) : t("charger un export");
     const cible = libellePortee(a && a.portee ? a.portee : (etat.source === "sc" ? porteeCourante() : null));
     if (cible) { meta.push([t("Périmètre"), cible]); meta.push([t("Volumétrie"), vol]); }
     else meta.push([t("Périmètre"), vol]);
   }
   meta.push([t("Date d'édition"), dateFr()]);
   $("#f-meta").innerHTML = meta.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("");
-  afficherPage(etat.pagesVisibles ? etat.pageApercu || 1 : 1);
+  afficherPage(etat.pageApercu || 1);
+  planifierExemple();
 }
-function afficherPage(n) {
-  etat.pageApercu = n;
-  $("#pages-apercu").hidden = !etat.pagesVisibles;
-  ["#feuille", "#feuille-p2", "#feuille-p3"].forEach((sel, i) => ($(sel).hidden = i + 1 !== n));
-  $$("#pages-apercu button").forEach((b) => b.setAttribute("aria-selected", String(Number(b.dataset.page) === n)));
-  $("#epreuve-note").textContent = n === 1 ? t("Couverture du rapport, telle qu'elle sera imprimée.")
-    : t("Page intérieure fictive, pour juger de l'en-tête, du pied de page et du filigrane.");
+/* Page 1 : la couverture réelle (export, périmètre, habillage). Pages suivantes : un rapport d'exemple (données fictives)
+   du modèle sélectionné, produit par le serveur avec l'habillage en cours, même non enregistré. */
+function elementsExemple() {
+  const d = etat.ex && etat.ex.donnees;
+  if (!d) return [];
+  return d.feuilles || (d.pages ? d.pages.slice(1) : []);          // la page de garde de l'exemple est remplacée par la couverture réelle
 }
-$("#pages-apercu").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) afficherPage(Number(b.dataset.page)); });
-
-/* pages fictives : donnent le rendu d'une page intérieure (en-tête, pied, filigrane) sans export chargé */
-function pagesFictives(h, p, fil, taille) {
-  const m = etat.modeles.find((x) => x.id === etat.modele);
-  const entete = [h.titre || t("Rapport de vulnérabilités"), m ? m.nom : ""].filter(Boolean).join(" · ");
-  const logo = h.logo ? `<img class="fc-logo" src="${$("#f-logo").src}" alt="">`
-    : themeActif() === "tenable" ? `<img class="fc-logo logo-tenable" src="/polices/tenable-logo-noir.svg" alt="tenable">` : "";
-  const badge = !!(h.mention_interieur && h.mention);           // même règle que dans le PDF : badge en en-tête, plus de mention en pied
-  // même règle que dans le PDF : le pied par défaut nomme le produit de l'export, et le périmètre suit
-  const piedSC = ["Données issues de Tenable Security Center", t("Données issues de Tenable Security Center")];
-  const piedProduit = produit() === "vm" && piedSC.includes(h.pied) ? t("Données issues de Tenable Vulnerability Management") : h.pied;
-  const a = etat.apercu, cible = libellePortee(a && a.portee ? a.portee : (etat.source === "sc" ? porteeCourante() : null));
-  const pied = [...(badge ? [] : [h.mention]), piedProduit, cible ? t("Périmètre : {p}", { p: cible }) : ""].filter(Boolean).join(" · ");
-  const cadre = (n, corps) => `<span class="f-filigrane" aria-hidden="true"${fil ? "" : " hidden"} style="font-size:${taille}">${esc(fil)}</span>
-    <div class="fc-entete">${badge ? `<span class="fc-badge">${esc(h.mention)}</span>` : ""}${logo}<div class="fc-droite"${badge ? ' style="margin-top:3cqw"' : ""}>${esc(entete)}<br>${esc(h.client || "")}</div></div>
-    <div class="fc-corps">${corps}</div>
-    <div class="fc-pied"><span>${esc(pied)}</span><span>${t("Page {n} / 12", { n })}</span></div>`;
-  const lignes = (...l) => l.map((w) => `<i class="fc-ligne" style="width:${w}%"></i>`).join("");
-  const barres = [["Critique", 88, "--critique"], ["Élevée", 70, "--elevee"], ["Moyenne", 52, "--moyenne"], ["Faible", 30, "--faible"]]
-    .map(([l, w, c]) => `<div class="fc-barre"><span>${t(l)}</span><i style="width:${w}%;background:var(${c})"></i></div>`).join("");
-  $("#feuille-p2").innerHTML = cadre(2, `<h4>${t("1. Synthèse")}</h4>${lignes(100, 97, 64)}
-    <div class="fc-kpis"><div><b>126</b>${t("machines")}</div><div><b>842</b>${t("vulnérabilités")}</div><div><b>61</b>${t("critiques")}</div><div><b>54</b>${t("élevées")}</div></div>
-    <h5>${t("Points clés")}</h5>${lignes(92, 80, 86)}<h5>${t("Vulnérabilités par sévérité")}</h5>${barres}`);
-  const act = [["Mettre à jour Google Chrome", "Critical"], ["Installer les correctifs Windows", "Critical"], ["Mettre à jour Oracle Java SE", "High"],
-               ["Désactiver TLS 1.0 et 1.1", "High"], ["Mettre à jour OpenSSH", "Medium"], ["Remplacer le certificat expiré", "Medium"], ["Désactiver SMBv1", "Low"]];
-  const sev = { Critical: ["Critique", "--critique"], High: ["Élevée", "--elevee"], Medium: ["Moyenne", "--moyenne"], Low: ["Faible", "--faible"] };
-  $("#feuille-p3").innerHTML = cadre(3, `<h4>${t("2. Plan d'action")}</h4>
-    <div class="fc-table"><div class="fc-th"><span>${t("N°")}</span><span>${t("Action")}</span><span>${t("Sévérité")}</span><span>${t("Machines")}</span></div>${
-      act.map(([txt, s], i) => `<div><span>${i + 1}</span><span>${t(txt)}</span><span><u style="background:var(${sev[s][1]})">${t(sev[s][0])}</u></span><span>${40 - i * 5}</span></div>`).join("")}</div>
-    ${lignes(96, 70)}`);
+function dpiApercu() {                                             // définition adaptée à la largeur affichée et à l'écran (A4 = 8,27 pouces)
+  const larg = $(".epreuve-col").clientWidth || 340, dpi = Math.ceil(larg * Math.max(1, window.devicePixelRatio || 1) / 8.27 / 10) * 10;
+  return Math.max(90, Math.min(dpi, 200));
 }
-
-/* ------------------------------------------------------------------ exemples de rapports (données fictives) */
-const ex = { donnees: null, i: 0, declencheur: null };
-async function ouvrirExemple(id, declencheur) {
-  const dlg = $("#exemple"), m = etat.modeles.find((x) => x.id === id);
-  ex.donnees = null; ex.i = 0; ex.declencheur = declencheur || null; $("#ex-cadre").classList.remove("zoom");
-  $("#ex-titre").textContent = m ? m.nom : "";
-  $("#ex-sous").textContent = "";
-  $("#ex-vignettes").innerHTML = ""; $("#ex-legende").textContent = ""; $("#ex-pos").textContent = "";
-  $("#ex-ouvrir").hidden = true; $("#ex-prec").disabled = $("#ex-suiv").disabled = true;
-  $("#ex-cadre").innerHTML = `<p class="ex-attente">${t("Génération de l'exemple…")}</p>`;
-  if (!dlg.open) dlg.showModal();
-  try {
-    ex.donnees = await api("GET", `/api/modeles/${id}/exemple?profil=${encodeURIComponent(etat.profil.id)}`);
-  } catch (err) { dlg.close(); toast(err.message, true); return; }
-  const d = ex.donnees;
-  $("#ex-sous").textContent = t("Exemple avec des données fictives, habillage du profil « {profil} »", { profil: d.profil });
-  $("#ex-ouvrir").href = d.fichier; $("#ex-ouvrir").hidden = false;
-  $("#ex-ouvrir").textContent = d.format === "xlsx" ? t("Ouvrir le classeur d'exemple") : t("Ouvrir le PDF d'exemple");
-  const elements = d.feuilles || d.pages || [];
-  if (d.feuilles) $("#ex-vignettes").innerHTML = d.feuilles.map((f, i) =>
-    `<button type="button" class="ex-feuille" data-i="${i}" data-i18n="non">${esc(f.nom)}</button>`).join("");
-  else if (d.pages) $("#ex-vignettes").innerHTML = d.pages.map((p, i) =>
-    `<button type="button" class="ex-vignette" data-i="${i}" aria-label="${esc(t("Page {n}", { n: p.n }))}"><img loading="lazy" src="${p.url}" alt=""><span data-i18n="non">${p.n}</span></button>`).join("");
-  if (d.sans_images) $("#ex-cadre").innerHTML = `<p class="ex-attente">${esc(d.sans_images)}</p>`;
-  else afficherExemple(0);
-}
-function afficherExemple(i) {
-  const d = ex.donnees; if (!d) return;
-  const elements = d.feuilles || d.pages || []; if (!elements.length) return;
-  ex.i = Math.max(0, Math.min(i, elements.length - 1));
-  const e = elements[ex.i];
-  if (d.feuilles) $("#ex-cadre").innerHTML = `<div class="ex-xl" data-i18n="non">${e.html}</div>`;
-  else $("#ex-cadre").innerHTML = `<img class="ex-page" title="${esc(t("Cliquer pour agrandir ou réduire"))}" src="${e.url}?dpi=130" alt="${esc(t("Page {n}", { n: e.n }))}">`;
-  $("#ex-legende").textContent = d.feuilles ? t("Feuille « {nom} »", { nom: e.nom }) : ((e.titre ? `${t("Page {n}", { n: e.n })} · ${e.titre}` : t("Page {n}", { n: e.n })) + " · " + t("Cliquer pour agrandir ou réduire"));
-  $("#ex-pos").textContent = t("{n} / {total}", { n: ex.i + 1, total: elements.length });
-  $("#ex-prec").disabled = ex.i === 0; $("#ex-suiv").disabled = ex.i === elements.length - 1;
-  $$("#ex-vignettes > button").forEach((b, k) => b.setAttribute("aria-current", String(k === ex.i)));
-  const cur = $(`#ex-vignettes > button[data-i="${ex.i}"]`); if (cur) cur.scrollIntoView({ block: "nearest" });
-  $("#ex-cadre").scrollTop = 0;
-}
-$("#ex-cadre").addEventListener("click", (e) => { if (e.target.closest(".ex-page")) { $("#ex-cadre").classList.toggle("zoom"); $("#ex-cadre").scrollTop = 0; } });
-$("#ex-vignettes").addEventListener("click", (e) => { const b = e.target.closest("button[data-i]"); if (b) afficherExemple(+b.dataset.i); });
-$("#ex-prec").addEventListener("click", () => afficherExemple(ex.i - 1));
-$("#ex-suiv").addEventListener("click", () => afficherExemple(ex.i + 1));
-$("#ex-fermer").addEventListener("click", () => $("#exemple").close());
-$("#exemple").addEventListener("click", (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });      // clic sur le fond
-$("#exemple").addEventListener("close", () => { if (ex.declencheur) ex.declencheur.focus(); });
-$("#exemple").addEventListener("keydown", (e) => {
-  if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); afficherExemple(ex.i + 1); }
-  else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); afficherExemple(ex.i - 1); }
-  else if (e.key === "Home") { e.preventDefault(); afficherExemple(0); }
+let minuteurTaille = null;
+window.addEventListener("resize", () => {                          // l'image est redemandée à la bonne définition quand la fenêtre change de taille
+  clearTimeout(minuteurTaille);
+  minuteurTaille = setTimeout(() => { if ((etat.pageApercu || 1) > 1) afficherPage(etat.pageApercu); }, 300);
 });
+function afficherPage(n) {
+  const els = elementsExemple(), total = 1 + els.length, ex = etat.ex || {};
+  n = Math.max(1, Math.min(n, total)); etat.pageApercu = n;
+  $("#feuille").hidden = n !== 1;
+  const fx = $("#feuille-ex"); fx.hidden = n === 1;
+  let note = t("Couverture du rapport, telle qu'elle sera imprimée.");
+  if (n > 1) {
+    const e = els[n - 2], d = ex.donnees;
+    if (d.feuilles) { fx.classList.add("xl"); fx.innerHTML = `<div class="ex-xl" data-i18n="non">${e.html}</div>`; }
+    else { fx.classList.remove("xl"); fx.innerHTML = `<img src="${e.url}?dpi=${dpiApercu()}" alt="${esc(t("Page {n}", { n: e.n }))}">`; }
+    note = (d.feuilles ? t("Feuille « {nom} »", { nom: e.nom }) : (e.titre ? `${t("Page {n}", { n: e.n })} · ${e.titre}` : t("Page {n}", { n: e.n })))
+      + " · " + t("données fictives, le contenu réel dépendra de votre export");
+  } else if (ex.erreur) note += " " + ex.erreur;
+  else if (ex.donnees && ex.donnees.sans_images) note += " " + ex.donnees.sans_images;
+  $("#ap-pos").textContent = ex.donnees ? t("{n} / {total}", { n, total }) : (ex.chargement ? `${n} / …` : String(n));
+  $("#ap-prec").disabled = n <= 1; $("#ap-suiv").disabled = n >= total;
+  $("#epreuve-note").textContent = note;
+}
+$("#ap-prec").addEventListener("click", () => afficherPage((etat.pageApercu || 1) - 1));
+$("#ap-suiv").addEventListener("click", () => afficherPage((etat.pageApercu || 1) + 1));
+
+let minuteurExemple = null;
+function planifierExemple() {
+  if (!etat.profil || !etat.modele) return;
+  const sig = JSON.stringify([etat.modele, etat.profil.habillage, etat.profil.langue, themeActif()]);
+  const cur = etat.ex;
+  if (cur && cur.sig === sig) return;
+  const meme = !!cur && cur.modele === etat.modele;                // même modèle : l'ancien exemple reste affiché pendant le calcul du nouveau
+  etat.ex = { sig, modele: etat.modele, donnees: meme ? cur.donnees : null, chargement: true, erreur: null };
+  if (!meme) { etat.pageApercu = 1; afficherPage(1); }
+  clearTimeout(minuteurExemple);
+  minuteurExemple = setTimeout(() => chargerExemple(etat.ex), 700);
+}
+async function chargerExemple(ex) {
+  try {
+    const d = await api("POST", `/api/modeles/${ex.modele}/exemple`, { profil: etat.profil.id, habillage: etat.profil.habillage });
+    if (etat.ex !== ex) return;                                    // une modification plus récente a pris le relais
+    ex.donnees = d; ex.erreur = null;
+  } catch (err) {
+    if (etat.ex !== ex) return;
+    ex.erreur = err.message;
+  }
+  ex.chargement = false;
+  afficherPage(etat.pageApercu || 1);
+}
 
 /* ------------------------------------------------------------------ profils */
 async function chargerModeles() { etat.modeles = await api("GET", "/api/modeles"); }      // noms et descriptions traduits par le serveur
@@ -388,7 +358,6 @@ function afficherModeles() {
         <span class="modele-format">${m.format === "xlsx" ? "Excel" : "PDF"}</span>
         <span class="modele-desc">${esc(m.description)}</span>
       </button>
-      <button type="button" class="modele-exemple" data-exemple="${m.id}">${t("Voir un exemple")}</button>
     </div>`).join("");
   const m = etat.modeles.find((x) => x.id === etat.modele);
   $("#depot2").hidden = !(m && m.exports === 2);
@@ -398,7 +367,6 @@ function afficherModeles() {
   majBoutonGenerer(); epreuve();
 }
 $("#modeles").addEventListener("click", async (e) => {
-  const ex = e.target.closest(".modele-exemple"); if (ex) { ouvrirExemple(ex.dataset.exemple, ex); return; }
   const b = e.target.closest(".modele"); if (!b) return;
   etat.modele = b.dataset.id; afficherModeles();
   try { await api("PUT", `/api/profils/${etat.profil.id}`, { modele: etat.modele }); } catch { /* préférence non critique */ }
@@ -456,8 +424,41 @@ brancherDepot($("#depot2"), $("#fichier2"), async (f) => {
 async function rafraichirApercu() {
   const zone = $("#apercu");
   try {
+    const mc = etat.modeles.find((x) => x.id === etat.modele);
+    if (mc && mc.collecte === "cpe") { zone.hidden = false; zone.innerHTML = `<p class="apercu-note">${t("Analyse des logiciels détectés d'après endoflife.date…")}</p>`; }
     const a = await api("GET", `/api/exports/${etat.export1.id}/apercu?profil=${etat.profil.id}`);
     etat.apercu = a;
+    if (a.genre === "eol") {                                  // modèle « Logiciels en fin de vie » : chiffres propres à ce rapport
+      const tot = (a.hors_support + a.sous_12_mois) || 1, lib = SEV_EOL;
+      zone.innerHTML = `
+        <div class="apercu-chiffres">
+          <div><b>${a.produits}</b><span>${t("produits en fin de vie ou proches de l'être")}</span></div>
+          <div><b>${a.hors_support}</b><span>${t("produits déjà hors support")}</span></div>
+          <div><b>${a.machines_concernees}</b><span>${t("machines concernées, sur {n}", { n: a.machines })}</span></div>
+        </div>
+        ${a.produits ? `<div class="sevbar" role="img" aria-label="${t("Situation des produits")}">
+          ${lib.map(([k, , v]) => a[k] ? `<i style="width:${100 * a[k] / tot}%;background:var(${v})"></i>` : "").join("")}</div>
+        <div class="sev-legende">${lib.map(([k, fr, v]) => `<span style="--c:var(${v})">${t(fr)} ${a[k]}</span>`).join("")}</div>` : ""}
+        <p class="apercu-note">${a.machines_exclues ? `${pluriel(a.machines_exclues, "machine exclue", "machines exclues")} ${t("par le périmètre.")} ` : ""}
+          ${a.produits ? "" : t("Aucun produit en fin de vie ni proche de l'être parmi ceux que couvre endoflife.date.") + " "}
+          ${a.vulns_hors_support ? `${t("{n} vulnérabilités ouvertes sur les produits hors support.", { n: a.vulns_hors_support })} ` : ""}
+          ${a.non_rapproches ? t("Logiciels détectés non rapprochés d'endoflife.date : {n} (listés en fin de rapport).", { n: a.non_rapproches }) : ""}</p>
+        <ol class="apercu-top">${a.top.map((s) => `<li><span>${esc(s.nom)}</span><em>${tp(s.machines, "machine", "machines")}${s.statut === "depassee" ? "" : " · " + t("Sous 12 mois")}</em></li>`).join("")}</ol>`;
+      zone.hidden = false; $("#btn-sans-regle").hidden = true; epreuve(); return;
+    }
+    if (a.erreur_referentiel) {                               // inventaire seul : endoflife.date n'a pas répondu
+      zone.innerHTML = `<div class="apercu-chiffres"><div><b>${a.machines}</b><span>${t("machines inventoriées")}</span></div>
+        <div><b>${a.logiciels}</b><span>${t("logiciels distincts (CPE)")}</span></div></div>
+        <p class="statut ko">${esc(a.erreur_referentiel)}</p>`;
+      zone.hidden = false; $("#btn-sans-regle").hidden = true; epreuve(); return;
+    }
+    if (a.genre === "cpe") {                                  // export de CPE : le rapprochement avec endoflife.date se fait à la génération
+      zone.innerHTML = `<div class="apercu-chiffres">
+        <div><b>${a.machines}</b><span>${t("machines inventoriées")}</span></div>
+        <div><b>${a.logiciels}</b><span>${t("logiciels distincts (CPE)")}</span></div></div>
+        <p class="apercu-note">${t("Les produits en fin de vie sont identifiés à la génération du rapport, d'après endoflife.date (accès Internet nécessaire).")}</p>`;
+      zone.hidden = false; $("#btn-sans-regle").hidden = true; epreuve(); return;
+    }
     const tot = Object.values(a.par_severite).reduce((x, y) => x + y, 0) || 1;
     const cov = a.couverture, sansRegle = cov.plugins - cov.avec_regle;
     zone.innerHTML = `
@@ -572,6 +573,9 @@ function remplirConnexion() {
   $("#vm-url").value = v.url; $("#vm-access").value = v.access_key; $("#vm-secret").value = "";
   $("#vm-ca").value = v.ca_bundle; $("#vm-tls").checked = v.verifier_tls;
   statut("#statut-vm-connexion", "");
+  const f = etat.config.endoflife || { ca_bundle: "", verifier_tls: true };
+  $("#eol-ca").value = f.ca_bundle; $("#eol-tls").checked = f.verifier_tls;
+  statut("#statut-eol-connexion", "");
 }
 function lireConnexion() {
   return { url: $("#sc-url").value.trim(), access_key: $("#sc-access").value.trim(), secret_key: $("#sc-secret").value,
@@ -611,6 +615,23 @@ $("#btn-vm-tester").addEventListener("click", async () => {
     const r = await api("POST", "/api/vm/tester", { vulnmanagement: lireConnexionVm() });
     statut("#statut-vm-connexion", t("Connexion réussie{utilisateur}.", { utilisateur: r.utilisateur ? ` (${r.utilisateur})` : "" }), "ok");
   } catch (err) { statut("#statut-vm-connexion", err.message, "ko"); }
+});
+
+/* endoflife.date : connexion (propre à ce service) */
+function lireConnexionEol() { return { ca_bundle: $("#eol-ca").value.trim(), verifier_tls: $("#eol-tls").checked }; }
+$("#form-eol-connexion").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    etat.config = await api("PUT", "/api/config", { endoflife: lireConnexionEol() });
+    remplirConnexion(); statut("#statut-eol-connexion", t("Connexion enregistrée"), "ok");
+  } catch (err) { statut("#statut-eol-connexion", err.message, "ko"); }
+});
+$("#btn-eol-tester").addEventListener("click", async () => {
+  statut("#statut-eol-connexion", t("Test en cours…"));
+  try {
+    const r = await api("POST", "/api/endoflife/tester", { endoflife: lireConnexionEol() });
+    statut("#statut-eol-connexion", t("Connexion réussie : {n} produits connus d'endoflife.date.", { n: r.produits }), "ok");
+  } catch (err) { statut("#statut-eol-connexion", err.message, "ko"); }
 });
 
 /* choix du produit (réglage du profil) */
@@ -827,9 +848,12 @@ function majSource() {
   const m = etat.modeles.find((x) => x.id === etat.modele);
   const comparaison = !!(m && m.exports === 2);
   if (comparaison) etat.source = "fichier";
+  const cpe = !!(m && m.collecte === "cpe");                  // modèle alimenté par l'API seulement (CPE) : pas de dépôt de fichier
+  if (cpe) { if (etat.source !== "sc") etat.sourceMemo = etat.source; etat.source = "sc"; }
+  else if (etat.sourceMemo) { etat.source = etat.sourceMemo; etat.sourceMemo = null; }
   const sc = etat.source === "sc";
   $$("#source-choix button").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.source === etat.source)));
-  $("#source-choix").hidden = comparaison;
+  $("#source-choix").hidden = comparaison || cpe;
   $("#source-sc").hidden = !sc; $("#depot1").hidden = sc; $("#aide-fichier").hidden = sc;
   const per = etat.profil ? etat.profil.perimetre : null, src = etat.profil ? etat.profil.source : null;
   const nom = NOM_PRODUIT[produit()];

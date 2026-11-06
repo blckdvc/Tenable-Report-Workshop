@@ -7,12 +7,25 @@ Two more documents go into detail on every feature:
 - the illustrated **user guide** (English, PDF): [Report_Workshop_User_Guide.pdf](Report_Workshop_User_Guide.pdf);
 - the French documentation: [LISEZMOI.md](LISEZMOI.md).
 
+## Screenshots
+
+![Generate tab: export summary and live cover preview](outils/guide/images/generer_apercu.png)
+
+![Template preview with page navigation](outils/guide/images/exemple.png)
+
+| | |
+|---|---|
+| ![End-of-life report: summary](outils/guide/images/page_eol_synthese.png) | ![End-of-life report: inventory](outils/guide/images/page_eol_inventaire.png) |
+
+The illustrated [user guide](Report_Workshop_User_Guide.pdf) has more.
+
 ## What it does
 
 - **Imports vulnerability data** from:
   - a Tenable Security Center CSV export (Analysis > Vulnerabilities > Vulnerability List > Export as CSV), including one re-saved by Excel with a semicolon separator and decimal commas
   - a Tenable Vulnerability Management CSV export
   - the Security Center REST API (`POST /rest/analysis`) or the Vulnerability Management export API, using a profile's saved query or a scope picked in the app (Security Center asset lists, Vulnerability Management tags)
+- **Lists end-of-life software**: the CPE that Nessus reports (plugin 45590) are matched with [endoflife.date](https://endoflife.date) to show which products are out of support or about to be, on which machines, with the open vulnerabilities.
 - **Turns plugin names into actions** with an editable rule set (`regles/`). For example, many "Product < X" findings become a single "Install Product version X or later" action. Rules cover Linux/Unix, Windows, the main network and security vendors, industrial systems and protocols, and common issues such as TLS, certificates, SSH, SMB, SNMP, DNS, WPAD, credentials sent in cleartext and Secure Boot.
 - **Ranks the actions with Tenable's scoring**, whichever product the data comes from: by severity (Critical 40, High 10, Medium 3, Low 1, the scale behind the Security Center vulnerability score), by VPR, or by VPR × ACR. ACR, AES and an estimated Cyber Exposure Score are shown when the data has them: Security Center and Vulnerability Management both provide them through their API.
 - **Applies each client's branding** through profiles: logo, main colour, title, footer, distribution notice and watermark. An optional "Tenable" theme switches the reports to the Tenable visual identity.
@@ -55,7 +68,11 @@ python3 -m venv .venv
 2. **Generate** tab: drop a CSV export, or pick the API source ("Security Center (API)" or "Vulnerability Management (API)") and click the fetch button, then choose a report template and click "Generate report". During an API retrieval, a **Retrieval log** box under the button shows each step live (export created, status, chunks or pages received, conversion).
 3. **Branding**, **Scope**, **Rules** and **Configuration** tabs: set up the client's branding, choose which severities and machines to include, edit the remediation rules, and configure API and SMTP connections.
 
-Each template has a "See an example" button that renders a sample report from fictitious data.
+Each template has a "See an example" button: the cover preview then shows the selected template filled with fictitious data, page by page (‹ › arrows).
+
+![Choosing a template](outils/guide/images/generer_modeles.png)
+
+For the end-of-life report, select its template **before** fetching through the API, so the software list is collected with the vulnerabilities.
 
 ### Command line
 
@@ -65,7 +82,7 @@ Each template has a "See an example" button that renders a sample report from fi
 .venv/bin/python generer.py --api --profil my-profile --mail default --langue en
 ```
 
-Options: `--modele` (`complet`, `synthese`, `fiches`, `comparaison`, `php2shell`, `plan_excel`), `--profil`, `--sortie`, `--theme` (`atelier` or `tenable`), `--langue` (`fr`, `en`, `es`, `it`), `--api` / `--securitycenter`, `--mail`. These work well in a scheduled task (cron or Windows Task Scheduler).
+Options: `--modele` (`complet`, `synthese`, `fiches`, `comparaison`, `php2shell`, `eol`, `plan_excel`), `--profil`, `--sortie`, `--theme` (`atelier` or `tenable`), `--langue` (`fr`, `en`, `es`, `it`), `--api` / `--securitycenter`, `--mail`. These work well in a scheduled task (cron or Windows Task Scheduler).
 
 ### Fetching from Tenable Vulnerability Management
 
@@ -100,6 +117,7 @@ Every PDF shows the data source and the scope on the cover and in the footer of 
 | Per-machine sheets (`fiches`) | PDF | One self-contained sheet per machine, with a checklist of actions and a tracking box |
 | Comparison of two exports (`comparaison`) | PDF | Risk score trend, and fixed, new and persistent vulnerabilities, by action and by machine |
 | PHP2Shell exposure (`php2shell`) | PDF | Themed report on CVE-2026-109618 / CVE-2026-109619: affected machines by priority, action plan, interim measures, compromise checks |
+| End-of-life software (`eol`) | PDF | Software out of support or soon to be (CPE matched with endoflife.date): summary, inventory, one sheet per product with machines and open vulnerabilities |
 | Excel action plan (`plan_excel`) | XLSX | Tracking of actions (owner, due date, status), per-machine status, vulnerability detail, progress indicators that recalculate automatically |
 
 ## Network and data flows
@@ -107,6 +125,7 @@ Every PDF shows the data source and the scope on the cover and in the footer of 
 The web server listens on `127.0.0.1` only, and the interface loads no external resources. Data leaves your machine only in these cases, each started by you:
 
 - calls to the **Security Center** URL you configure, or to **Tenable Vulnerability Management** (`https://cloud.tenable.com` by default), to fetch vulnerability data;
+- calls to **endoflife.date** (public API, only for the end-of-life report) to read product lifecycle dates; behind a TLS-inspecting proxy, set its root certificate in the dedicated endoflife.date block of the Configuration tab (separate from the Tenable certificates);
 - sending a report by **email** through the SMTP server you configure;
 - installing Python packages from PyPI on first launch.
 

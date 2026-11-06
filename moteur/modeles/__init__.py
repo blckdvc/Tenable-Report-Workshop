@@ -1,5 +1,5 @@
 """Catalogue des modèles de rapport disponibles."""
-from . import complet, synthese, fiches, comparaison, plan_excel, php2shell
+from . import complet, synthese, fiches, comparaison, plan_excel, php2shell, eol
 
 MODELES = {
     "complet": dict(nom="Plan de remédiation complet", format="pdf", exports=1, module=complet,
@@ -12,6 +12,8 @@ MODELES = {
                         description="Évolution entre deux campagnes : corrigé, nouveau, persistant, avancement par solution."),
     "php2shell": dict(nom="Exposition PHP2Shell", format="pdf", exports=1, module=php2shell, toutes_severites=True,
                       description="Machines concernées par PHP2Shell (CVE-2026-109618 et 109619), priorités, mesures provisoires, vérification de compromission."),
+    "eol": dict(nom="Logiciels en fin de vie", format="pdf", exports=1, module=eol, collecte="cpe", toutes_severites=True,
+                description="Produits hors support ou dont le support se termine sous 12 mois (CPE détectés par Tenable, rapprochés d'endoflife.date), calendrier et plan de migration."),
     "plan_excel": dict(nom="Plan d'action Excel", format="xlsx", exports=1, module=plan_excel,
                        description="Tableau de suivi : responsable, échéance, statut, avec indicateurs d'avancement."),
 }

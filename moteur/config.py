@@ -31,6 +31,10 @@ DEFAUT = {
         "verifier_tls": True,
         "ca_bundle": "",            # chemin d'un certificat (PEM), par exemple pour un proxy d'inspection TLS
     },
+    "endoflife": {                  # référentiel endoflife.date : réglage propre à ce service (le proxy peut différer de celui de Tenable)
+        "ca_bundle": "",            # chemin d'un certificat (PEM) du proxy d'inspection TLS qui précède endoflife.date
+        "verifier_tls": True,       # False : certificat non vérifié (à réserver à un test)
+    },
     "interface": {
         "theme": "atelier",         # atelier | tenable : thème de l'interface et des rapports
     },
@@ -45,7 +49,7 @@ DEFAUT = {
         "verifier_tls": True,
     },
 }
-SECRETS = {"securitycenter": ("secret_key",), "vulnmanagement": ("secret_key",), "smtp": ("mot_de_passe",)}
+SECRETS = {"securitycenter": ("secret_key",), "vulnmanagement": ("secret_key",), "smtp": ("mot_de_passe",), "endoflife": ()}
 ENV = {
     ("securitycenter", "url"): "TENABLE_SC_URL",
     ("securitycenter", "access_key"): "TENABLE_SC_ACCESS_KEY",

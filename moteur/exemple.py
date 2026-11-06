@@ -101,6 +101,14 @@ def cle_apercu(modele, habillage, perimetre, code, mtime_logo=0):
 def produire(modele_id, modele, habillage, dossier):
     """Génère le rapport d'exemple dans `dossier` ; renvoie le chemin du fichier produit."""
     os.makedirs(dossier, exist_ok=True)
+    if modele.get("collecte") == "cpe":                  # logiciels en fin de vie : jeu fictif, sans accès à endoflife.date
+        from . import eol as EOL
+        hab = dict(habillage)
+        hab["client"] = hab.get("client") or tr("Client exemple")
+        an = EOL.exemple(dossier)
+        sortie = os.path.join(dossier, f"exemple.{modele['format']}")
+        modele["module"].generer(an, hab, sortie)
+        return sortie, an
     nb = 5 if modele_id == "fiches" else None            # fiches : une page par machine, 5 suffisent à montrer le principe
     perimetre = {"top": 6, "severites": ["Critical", "High", "Medium", "Low"]}
     hab = dict(habillage)
