@@ -231,7 +231,7 @@ def chapitre_inventaire(d, an):
     occ = sum(len(e["machines"]) for e in an.produits)
     return [Paragraph(tr("3. Inventaire et plan de migration"), d.H1),
             Paragraph(tr("Les produits sont classés par urgence : d'abord ceux qui sont déjà hors support, du plus répandu au moins répandu, "
-                         "puis ceux dont l'échéance approche. La version cible est la plus récente version encore supportée selon endoflife.date."), d.LEAD),
+                         "puis ceux dont l'échéance approche. La version cible est une version encore supportée selon endoflife.date (voir la note de méthode)."), d.LEAD),
             d.tableau(lignes, [7 * mm, 31 * mm, 21 * mm, 28 * mm, 21 * mm, 16 * mm, 13 * mm, 12 * mm, W - 149 * mm] if vu
                        else [8 * mm, 36 * mm, 24 * mm, 32 * mm, 22 * mm, 18 * mm, W - 140 * mm]), Spacer(1, 6),
             Paragraph(tr("{produits} · {occ} occurrences sur {machines} (une machine peut porter plusieurs produits).",
@@ -240,13 +240,25 @@ def chapitre_inventaire(d, an):
 
 def fiche(d, an, i, e):
     cible = e["cible"]
+    if cible and e.get("cible_ancienne"):
+        avis = tr("Cette version est plus ancienne que celle installée, mais c'est la seule encore supportée selon endoflife.date.")
+    else:
+        avis = None
     if e["statut"] == "depassee":
-        action = (tr("Migrer vers {cible}, la version la plus récente encore supportée selon endoflife.date.", cible=cible) if cible
-                  else tr("Migrer vers une version encore supportée par l'éditeur.")) + " " + \
-                 tr("Tant que la migration n'est pas faite, isoler les machines concernées et limiter leurs flux entrants.")
+        if not cible:
+            action = tr("Migrer vers une version encore supportée par l'éditeur.")
+        elif avis:
+            action = tr("Migrer vers {cible}.", cible=cible) + " " + avis
+        elif e.get("cible_lts"):
+            action = tr("Migrer vers {cible}, version à support long encore supportée selon endoflife.date.", cible=cible)
+        else:
+            action = tr("Migrer vers {cible}, la version la plus récente encore supportée selon endoflife.date.", cible=cible)
+        action += " " + tr("Tant que la migration n'est pas faite, isoler les machines concernées et limiter leurs flux entrants.")
     else:
         action = (tr("Planifier la migration vers {cible} avant le {date}.", cible=cible, date=date_txt(e["eol_date"])) if cible
                   else tr("Planifier la migration vers une version supportée avant le {date}.", date=date_txt(e["eol_date"])))
+        if avis:
+            action += " " + avis
     statut = tr("fin de support dépassée") if e["statut"] == "depassee" else tr("fin de support sous 12 mois")
     cycle = tr("Fin de support : {date} ({ecart}).", date=date_txt(e["eol_date"]), ecart=ecart(e, an.aujourdhui))
     if e["deduit"]:
@@ -282,7 +294,8 @@ def chapitre_methode(d, an):
                                           "Les supports payants (Ubuntu Pro, mises à jour de sécurité étendues de Microsoft) ne sont pas pris en compte.")),
         (tr("Statut"), tr("Dépassée : la date est passée. Sous 12 mois : la date tombe dans l'année qui vient. "
                           "Les produits dont le support dépasse 12 mois ne sont pas listés.")),
-        (tr("Version cible"), tr("La version la plus récente encore supportée selon le référentiel, en version à support long (LTS) quand il en existe une. "
+        (tr("Version cible"), tr("Une version encore supportée selon le référentiel, plus récente que celle détectée, en version à support long (LTS) quand il en existe une. "
+                                 "Si seule une version plus ancienne reste supportée, c'est elle qui est indiquée et la fiche le précise. "
                                  "Elle est à valider avec les contraintes de chaque application.")),
         (tr("Ce qui n'est pas couvert"), tr("Un logiciel qui ne déclare pas de CPE, ou que le référentiel ne connaît pas, n'apparaît pas dans les chiffres. "
                                             "Il figure alors dans la liste ci-dessous, quand sa présence est connue.")),

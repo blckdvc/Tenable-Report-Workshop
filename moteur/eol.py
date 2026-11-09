@@ -123,15 +123,27 @@ class Referentiel:
     def libelle(self, slug):
         return self.produit(slug).get("label") or slug
 
-    def cible(self, slug):
-        """Version encore supportée à viser : la plus récente en support long (LTS) s'il y en a, sinon la plus récente.
-        Renvoie « Libellé cycle », ou None si le référentiel n'en indique aucune."""
-        vivants = [c for c in self.cycles(slug) if not c.get("isEol") and c.get("isMaintained", True)]
+    def cible_detail(self, slug, cycle=None):
+        """Version encore supportée à viser, sous la forme (libellé, lts, plus_ancienne), ou None si le référentiel n'en indique aucune.
+
+        On ne propose que des cycles supérieurs à celui détecté, en préférant ceux à support long (LTS), sinon le plus récent.
+        Si aucun cycle plus récent n'est supporté (ex. branche sans support long dépassée par une LTS plus ancienne),
+        on retient la meilleure version encore supportée et `plus_ancienne` vaut True."""
+        cycle = str(cycle or "").lstrip("<")
+        vivants = [c for c in self.cycles(slug) if not c.get("isEol") and c.get("isMaintained", True) and str(c["name"]) != cycle]
         if not vivants:
             return None
-        pool = [c for c in vivants if c.get("isLts")] or vivants
+        ref = self._num(cycle)
+        plus_recents = [c for c in vivants if ref is None or (self._num(str(c["name"])) or ref) > ref]
+        ancienne = bool(ref) and not plus_recents
+        base = plus_recents or vivants
+        pool = [c for c in base if c.get("isLts")] or base
         meilleur = max(pool, key=lambda c: str(c.get("releaseDate") or ""))
-        return f"{self.libelle(slug)} {meilleur['name']}"
+        return f"{self.libelle(slug)} {meilleur['name']}", bool(meilleur.get("isLts")), ancienne
+
+    def cible(self, slug, cycle=None):
+        d = self.cible_detail(slug, cycle)
+        return d[0] if d else None
 
     @staticmethod
     def _num(nom):
@@ -437,7 +449,8 @@ class AnalyseEol:
         res = analyser(self.machines, ref, self.aujourdhui, horizon_jours)
         for e in res["produits"]:
             e["libelle"] = ref.libelle(e["produit"])
-            e["cible"] = ref.cible(e["produit"])
+            d = ref.cible_detail(e["produit"], e["cycle"])
+            e["cible"], e["cible_lts"], e["cible_ancienne"] = d if d else (None, False, False)
         # plus urgents d'abord : produits hors support (les plus répandus en tête), puis échéances à venir par date
         self.produits = sorted(res["produits"], key=lambda e: (e["statut"] != "depassee", -len(e["machines"]) if e["statut"] == "depassee" else 0,
                                                               e["eol_date"] or "0000-00-00", e["produit"]))
