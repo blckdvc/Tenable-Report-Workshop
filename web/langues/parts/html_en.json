@@ -109,7 +109,6 @@
  "Voir la requête envoyée à l'API": "View the query sent to the API",
  "Courriel": "Email",
  "Serveur SMTP": "SMTP server",
- "Les rapports sont envoyés en pièce jointe, uniquement quand vous le demandez. Le mot de passe est enregistré dans <code>config.json</code> ou fourni par <code>SMTP_PASSWORD</code>.": "Reports are sent as attachments, only when you ask for it. The password is saved in <code>config.json</code> or supplied by <code>SMTP_PASSWORD</code>.",
  "Serveur": "Server",
  "smtp.exemple.fr": "smtp.example.com",
  "Port": "Port",
@@ -222,5 +221,6 @@
  "Fichier .pem (chemin absolu, relatif à l'application ou commençant par ~), pour une PKI interne": "A .pem file (absolute path, relative to the application, or starting with ~), for an internal PKI",
  "Fichier .pem (chemin absolu, relatif à l'application ou commençant par ~), pour un proxy d'inspection TLS": "A .pem file (absolute path, relative to the application, or starting with ~), for a TLS inspection proxy",
  "Exporter ce profil": "Export this profile",
- "Importer un profil…": "Import a profile…"
+ "Importer un profil…": "Import a profile…",
+ "Les rapports sont envoyés en pièce jointe, uniquement quand vous le demandez. Le serveur est enregistré dans le profil (il suit un export du profil) ; le mot de passe reste dans <code>config.json</code>, sur ce poste, ou est fourni par <code>SMTP_PASSWORD</code>. Un profil sans serveur utilise celui de <code>config.json</code>.": "Reports are sent as attachments, only when you ask for it. The server is saved in the profile (it travels with a profile export); the password stays in <code>config.json</code>, on this computer, or is supplied by <code>SMTP_PASSWORD</code>. A profile without a server uses the one in <code>config.json</code>."
 }

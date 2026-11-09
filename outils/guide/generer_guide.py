@@ -297,7 +297,7 @@ def contenu():
           *h2("Configuration"),
           p("Three blocks: **Tenable product** (Security Center or Vulnerability Management, a setting of the profile), the "
             "section of the chosen product (server and API keys, shared by all profiles; the export query, specific to the "
-            "profile) and **Email** (SMTP server, shared; default message, specific to the profile). See chapters 5 and 9."),
+            "profile) and **Email** (SMTP server and default message, both specific to the profile). See chapters 5 and 9."),
           F.une("configuration.png", "The Configuration tab. With Vulnerability Management, the export query also offers the detection period.", 0.8),
           p("A fourth block, **endoflife.date**, is used only by the end-of-life software report. It has its own CA certificate "
             "field and a “verify TLS” box, because a TLS-inspecting proxy often affects this public site and not your Tenable "
@@ -489,9 +489,9 @@ def contenu():
           # 9 --------------------------------------------------------------
           h1("9. Sending a report by email"),
           p("Sending is always optional and explicit: nothing is ever sent without your choosing it.", LEAD),
-          liste(["**Configuration > Email > SMTP server** (shared by all profiles): server, port, encryption (STARTTLS, SSL/TLS, "
+          liste(["**Configuration > Email > SMTP server** (specific to the profile, so each client can have its own server and sender; a profile without a server falls back to the one in `config.json`): server, port, encryption (STARTTLS, SSL/TLS, "
                  "or none for an internal relay), credentials if any, and the sender address. “Test the connection” opens a "
-                 "session and authenticates without sending a message. The password can come from the `SMTP_PASSWORD` variable.",
+                 "session and authenticates without sending a message. The password stays on this computer, in `config.json`, or comes from the `SMTP_PASSWORD` variable; it is never written to the profile or to an exported profile.",
                  "**Default message** (per profile): usual recipients, subject and text. Variables: `{titre}`, `{client}`, "
                  "`{date}`, `{fichier}`.",
                  "On **Generate > step 3**, “Generate the report” only creates the file. “Generate and send by email” (shown "

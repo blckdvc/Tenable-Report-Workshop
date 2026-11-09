@@ -192,11 +192,13 @@ def lire_profil(pid):
     p.setdefault("modele", "complet")
     p["langue"] = i18n.valide(p.get("langue"))
     p["mail"] = {**MAIL_DEFAUT, "message": defauts_langue(p["langue"])["message"], **p.get("mail", {})}
+    p["smtp"] = {**CFG.SMTP_PROFIL_DEFAUT, **p.get("smtp", {})}
+    p["smtp_mdp_defini"] = bool(CFG.mot_de_passe_smtp(pid))              # indicateur seulement : le mot de passe ne sort jamais
     return p
 
 
 def ecrire_profil(p):
-    data = {k: p[k] for k in ("nom", "langue", "habillage", "perimetre", "modele", "source", "mail") if k in p}
+    data = {k: p[k] for k in ("nom", "langue", "habillage", "perimetre", "modele", "source", "mail", "smtp") if k in p}
     if "source" in data:
         data["source"] = PF.vers_disque(data["source"])         # rangée par produit (profil portable)
     data["modifie"] = datetime.datetime.now().isoformat(timespec="seconds")
@@ -216,7 +218,7 @@ def creer_profil(nom, base=None, langue=None):
     p["habillage"].update({"titre": dl["titre"], "pied": dl["pied"]})
     p["mail"]["message"] = dl["message"]
     if base:
-        p.update({k: json.loads(json.dumps(base[k])) for k in ("habillage", "perimetre", "modele", "source", "mail", "langue")})
+        p.update({k: json.loads(json.dumps(base[k])) for k in ("habillage", "perimetre", "modele", "source", "mail", "langue", "smtp")})
         logo = base["habillage"].get("logo")
         if logo and os.path.exists(os.path.join(PROFILS, logo)):
             nouveau = f"{pid}_logo{os.path.splitext(logo)[1]}"
@@ -294,7 +296,7 @@ def api_profil_importer():
     nom = str(d.get("nom") or data.get("nom") or "").strip() or tr("Profil importé")
     p = creer_profil(nom, langue=data.get("langue"))
     try:
-        appliquer_maj(p, {k: data[k] for k in ("habillage", "perimetre", "source", "mail", "modele", "langue") if data.get(k)})
+        appliquer_maj(p, {k: data[k] for k in ("habillage", "perimetre", "source", "mail", "modele", "langue", "smtp") if data.get(k)})
         if logo:
             nom_logo = f"{p['id']}_logo{logo[1]}"
             chemin = os.path.join(PROFILS, nom_logo)
@@ -317,11 +319,15 @@ def api_profil_importer():
 @app.put("/api/profils/<pid>")
 def api_profil_maj(pid):
     p = lire_profil(pid)
+    d = corps_json()
     try:
-        appliquer_maj(p, corps_json())
+        appliquer_maj(p, d)
     except Refus as e:
         return erreur(str(e))
     ecrire_profil(p)
+    mdp = (d.get("smtp") or {}).get("mot_de_passe") if isinstance(d.get("smtp"), dict) else None
+    if mdp:                                                      # secret : config.json (propre au poste), jamais le fichier du profil
+        CFG.definir_mot_de_passe_smtp(pid, mdp)
     return jsonify(lire_profil(pid))
 
 
@@ -329,9 +335,28 @@ class Refus(Exception):
     """Mise à jour d'un profil refusée : le message (déjà traduit) est renvoyé à l'interface."""
 
 
+def valider_smtp(s):
+    """Réglages SMTP d'un profil, nettoyés ; lève Refus. Le mot de passe n'en fait pas partie (voir api_profil_maj)."""
+    out = {k: (bool(s[k]) if isinstance(CFG.SMTP_PROFIL_DEFAUT[k], bool) else str(s[k] if s[k] is not None else "").strip())
+           for k in CFG.SMTP_PROFIL_DEFAUT}
+    if not re.fullmatch(r"[\w.\-:\[\]]*", out["hote"]):
+        raise Refus(tr("Adresse du serveur SMTP invalide (exemple : smtp.exemple.fr)."))
+    if out["securite"] not in ("starttls", "ssl", "aucune"):
+        raise Refus(tr("Chiffrement SMTP inconnu."))
+    try:
+        out["port"] = int(out["port"] or {"ssl": 465, "starttls": 587}.get(out["securite"], 25))
+        if not 1 <= out["port"] <= 65535:
+            raise ValueError
+    except (TypeError, ValueError):
+        raise Refus(tr("Port SMTP invalide."))
+    if out["expediteur"]:
+        MAIL.adresses(out["expediteur"])
+    return out
+
+
 def appliquer_maj(p, d):
     """Applique à `p` (profil lu) les champs de `d`, avec toutes les validations ; lève Refus. N'écrit rien sur disque."""
-    if any(k in d and not isinstance(d[k], dict) for k in ("habillage", "perimetre", "source", "mail")):
+    if any(k in d and not isinstance(d[k], dict) for k in ("habillage", "perimetre", "source", "mail", "smtp")):
         raise Refus(tr("Requête invalide."))
     if isinstance(d.get("nom"), str) and d["nom"].strip():
         p["nom"] = d["nom"].strip()
@@ -391,6 +416,8 @@ def appliquer_maj(p, d):
         m = {**p["mail"], **{k: str(v or "") for k, v in d["mail"].items() if k in MAIL_DEFAUT}}
         MAIL.adresses(m["destinataires"])                       # refuse une adresse mal formée
         p["mail"] = m
+    if "smtp" in d:
+        p["smtp"] = valider_smtp({**p["smtp"], **{k: v for k, v in d["smtp"].items() if k in CFG.SMTP_PROFIL_DEFAUT}})
     if d.get("modele") in MODELES:
         p["modele"] = d["modele"]
 
@@ -407,6 +434,7 @@ def api_profil_supprimer(pid):
         except OSError:
             pass
     os.remove(_chemin_profil(pid))
+    CFG.definir_mot_de_passe_smtp(pid, None)
     return jsonify({"ok": True})
 
 
@@ -739,7 +767,18 @@ def api_sc_exporter():
 
 @app.post("/api/smtp/tester")
 def api_smtp_tester():
-    return jsonify(MAIL.tester(_cfg_section("smtp")))
+    """Test avec les champs en cours de saisie du profil (mot de passe vide : celui qui est enregistré)."""
+    d = corps_json()
+    p = lire_profil(d.get("profil") or "")
+    saisie = d.get("smtp") if isinstance(d.get("smtp"), dict) else {}
+    try:
+        smtp = valider_smtp({**p["smtp"], **{k: v for k, v in saisie.items() if k in CFG.SMTP_PROFIL_DEFAUT}})
+    except Refus as e:
+        return erreur(str(e))
+    cfg = CFG.smtp_effectif(smtp, p["id"])
+    if saisie.get("mot_de_passe") and smtp["hote"]:
+        cfg["mot_de_passe"] = saisie["mot_de_passe"]
+    return jsonify(MAIL.tester(cfg))
 
 
 def _gabarit(texte, valeurs):
@@ -759,7 +798,7 @@ def _envoyer_rapport(nom, p, d):
         i18n.set_langue(avant)
     objet = _gabarit(d.get("objet") or p["mail"]["objet"], val).strip(" -")
     corps = _gabarit(d.get("message") or p["mail"]["message"], val)
-    envoyes = MAIL.envoyer(CFG.lire()["smtp"], d.get("destinataires") or p["mail"]["destinataires"], objet, corps,
+    envoyes = MAIL.envoyer(CFG.smtp_effectif(p["smtp"], p["id"]), d.get("destinataires") or p["mail"]["destinataires"], objet, corps,
                            [os.path.join(RAPPORTS, nom)])
     return {"destinataires": envoyes, "objet": objet}
 

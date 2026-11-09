@@ -213,7 +213,7 @@ async function choisirProfil(id) {
   if (etat.profil.langue !== I18N.code) { await appliquerLangue(etat.profil.langue); await chargerModeles(); majPlaceholders(); }      // la langue est celle du profil
   try { localStorage.setItem("profil", id); } catch { /* stockage indisponible */ }
   if (etat.profil.modele) etat.modele = etat.profil.modele;
-  majSuggestions(); remplirHabillage(); remplirPerimetre(); remplirSource(); remplirMail(); afficherModeles(); epreuve();
+  majSuggestions(); remplirHabillage(); remplirPerimetre(); remplirSource(); remplirMail(); if (etat.config) remplirSmtp(); afficherModeles(); epreuve();
   if (etat.export1) rafraichirApercu();
 }
 $("#profil-select").addEventListener("change", (e) => choisirProfil(e.target.value));
@@ -558,7 +558,7 @@ async function chargerConfig() {
   etat.config = await api("GET", "/api/config");
   remplirConnexion(); remplirSmtp(); majSource(); majBoutonGenerer();
 }
-const smtpConfigure = () => !!(etat.config && etat.config.smtp.hote);
+const smtpConfigure = () => !!((etat.profil && etat.profil.smtp && etat.profil.smtp.hote) || (etat.config && etat.config.smtp.hote));
 /* produit Tenable du profil : « sc » (Security Center) ou « vm » (Vulnerability Management) */
 const produit = () => (etat.profil && etat.profil.source && etat.profil.source.produit === "vm" ? "vm" : "sc");
 const NOM_PRODUIT = { sc: "Security Center", vm: "Vulnerability Management" };
@@ -577,7 +577,8 @@ function majPlaceholders() {
   if (!etat.config) return;
   $("#sc-secret").placeholder = etat.config.securitycenter.secret_key_defini ? t("Enregistrée (laisser vide pour la conserver)") : "";
   $("#vm-secret").placeholder = etat.config.vulnmanagement.secret_key_defini ? t("Enregistrée (laisser vide pour la conserver)") : "";
-  $("#m-pass").placeholder = etat.config.smtp.mot_de_passe_defini ? t("Enregistré (laisser vide pour le conserver)") : "";
+  const mdp = etat.profil && etat.profil.smtp && etat.profil.smtp.hote ? etat.profil.smtp_mdp_defini : etat.config.smtp.mot_de_passe_defini;
+  $("#m-pass").placeholder = mdp ? t("Enregistré (laisser vide pour le conserver)") : "";
 }
 function remplirConnexion() {
   const c = etat.config.securitycenter;
@@ -959,7 +960,8 @@ $("#btn-sc-recuperer2").addEventListener("click", () => recupererSC(2, "#btn-sc-
 const CHAMPS_SMTP = ["hote", "port", "securite", "utilisateur", "expediteur", "nom_expediteur"];
 const idSmtp = { hote: "#m-hote", port: "#m-port", securite: "#m-securite", utilisateur: "#m-user", mot_de_passe: "#m-pass", expediteur: "#m-exp", nom_expediteur: "#m-nom" };
 function remplirSmtp() {
-  const c = etat.config.smtp;
+  /* serveur du profil ; tant qu'il n'en a pas, on affiche celui, commun, de config.json : « Enregistrer » le copie dans le profil */
+  const c = etat.profil && etat.profil.smtp && etat.profil.smtp.hote ? etat.profil.smtp : etat.config.smtp;
   CHAMPS_SMTP.forEach((k) => ($(idSmtp[k]).value = c[k] ?? ""));
   $("#m-pass").value = ""; majPlaceholders();
   $("#m-tls").checked = c.verifier_tls; statut("#statut-smtp", "");
@@ -972,14 +974,14 @@ $("#m-securite").addEventListener("change", (e) => { $("#m-port").value = { star
 $("#form-smtp").addEventListener("submit", async (e) => {
   e.preventDefault();
   try {
-    etat.config = await api("PUT", "/api/config", { smtp: lireSmtp() });
+    etat.profil = await api("PUT", `/api/profils/${etat.profil.id}`, { smtp: lireSmtp() });
     remplirSmtp(); majBoutonGenerer(); statut("#statut-smtp", t("Serveur enregistré"), "ok");
   } catch (err) { statut("#statut-smtp", err.message, "ko"); }
 });
 $("#btn-smtp-tester").addEventListener("click", async () => {
   statut("#statut-smtp", t("Test en cours…"));
   try {
-    await api("POST", "/api/smtp/tester", { smtp: lireSmtp() });
+    await api("POST", "/api/smtp/tester", { profil: etat.profil.id, smtp: lireSmtp() });
     statut("#statut-smtp", t("Connexion et authentification réussies (aucun message envoyé)."), "ok");
   } catch (err) { statut("#statut-smtp", err.message, "ko"); }
 });
@@ -1008,7 +1010,7 @@ function ouvrirEnvoi(fichier) {
 $("#liste-rapports").addEventListener("click", (e) => {
   const a = e.target.closest("[data-envoyer]"); if (!a) return;
   e.preventDefault();
-  if (!etat.config || !etat.config.smtp.hote) { toast(t("Configurez d'abord le serveur SMTP (onglet Configuration)."), true); return; }
+  if (!smtpConfigure()) { toast(t("Configurez d'abord le serveur SMTP (onglet Configuration)."), true); return; }
   ouvrirEnvoi(a.dataset.envoyer); $("#envoi").scrollIntoView({ block: "center", behavior: "smooth" });
 });
 $("#btn-envoi-fermer").addEventListener("click", () => ($("#envoi").hidden = true));

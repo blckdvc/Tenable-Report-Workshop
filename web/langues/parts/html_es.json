@@ -109,7 +109,6 @@
  "Voir la requête envoyée à l'API": "Ver la consulta enviada a la API",
  "Courriel": "Correo electrónico",
  "Serveur SMTP": "Servidor SMTP",
- "Les rapports sont envoyés en pièce jointe, uniquement quand vous le demandez. Le mot de passe est enregistré dans <code>config.json</code> ou fourni par <code>SMTP_PASSWORD</code>.": "Los informes se envían como archivo adjunto, únicamente cuando usted lo solicita. La contraseña se guarda en <code>config.json</code> o se proporciona mediante <code>SMTP_PASSWORD</code>.",
  "Serveur": "Servidor",
  "smtp.exemple.fr": "smtp.ejemplo.es",
  "Port": "Puerto",
@@ -222,5 +221,6 @@
  "Fichier .pem (chemin absolu, relatif à l'application ou commençant par ~), pour une PKI interne": "Archivo .pem (ruta absoluta, relativa a la aplicación o que empieza por ~), para una PKI interna",
  "Fichier .pem (chemin absolu, relatif à l'application ou commençant par ~), pour un proxy d'inspection TLS": "Archivo .pem (ruta absoluta, relativa a la aplicación o que empieza por ~), para un proxy de inspección TLS",
  "Exporter ce profil": "Exportar este perfil",
- "Importer un profil…": "Importar un perfil…"
+ "Importer un profil…": "Importar un perfil…",
+ "Les rapports sont envoyés en pièce jointe, uniquement quand vous le demandez. Le serveur est enregistré dans le profil (il suit un export du profil) ; le mot de passe reste dans <code>config.json</code>, sur ce poste, ou est fourni par <code>SMTP_PASSWORD</code>. Un profil sans serveur utilise celui de <code>config.json</code>.": "Los informes se envían como adjunto, solo cuando usted lo pide. El servidor se guarda en el perfil (viaja con la exportación del perfil); la contraseña se queda en <code>config.json</code>, en este equipo, o la proporciona <code>SMTP_PASSWORD</code>. Un perfil sin servidor usa el de <code>config.json</code>."
 }
