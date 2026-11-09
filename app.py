@@ -27,6 +27,7 @@ from moteur import charte as CH
 from moteur import config as CFG
 from moteur import courriel as MAIL
 from moteur import portee as PT
+from moteur import profil as PF
 from moteur import regles as R
 from moteur import i18n
 from moteur import exemple as EX
@@ -187,7 +188,7 @@ def lire_profil(pid):
     p["id"] = pid
     p["habillage"] = {**HABILLAGE_DEFAUT, **p.get("habillage", {})}
     p["perimetre"] = {**PERIMETRE_DEFAUT, **p.get("perimetre", {})}
-    p["source"] = {**SOURCE_DEFAUT, **p.get("source", {})}
+    p["source"] = {**SOURCE_DEFAUT, **PF.depuis_disque(p.get("source", {}))}
     p.setdefault("modele", "complet")
     p["langue"] = i18n.valide(p.get("langue"))
     p["mail"] = {**MAIL_DEFAUT, "message": defauts_langue(p["langue"])["message"], **p.get("mail", {})}
@@ -196,6 +197,8 @@ def lire_profil(pid):
 
 def ecrire_profil(p):
     data = {k: p[k] for k in ("nom", "langue", "habillage", "perimetre", "modele", "source", "mail") if k in p}
+    if "source" in data:
+        data["source"] = PF.vers_disque(data["source"])         # rangée par produit (profil portable)
     data["modifie"] = datetime.datetime.now().isoformat(timespec="seconds")
     with open(_chemin_profil(p["id"]), "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
@@ -263,12 +266,73 @@ def api_profil_creer():
     return jsonify(creer_profil(nom, base, d.get("langue")))
 
 
+@app.get("/api/profils/<pid>/export")
+def api_profil_exporter(pid):
+    """Fichier JSON autonome du profil (logo embarqué, aucun secret) : à importer sur un autre poste."""
+    p = lire_profil(pid)
+    octets, ext = None, None
+    logo = p["habillage"].get("logo")
+    if logo and os.path.exists(os.path.join(PROFILS, logo)):
+        with open(os.path.join(PROFILS, logo), "rb") as f:
+            octets, ext = f.read(), os.path.splitext(logo)[1]
+    corps = json.dumps(PF.exporter(p, octets, ext), ensure_ascii=False, indent=2)
+    rep = app.response_class(corps, mimetype="application/json")
+    rep.headers["Content-Disposition"] = f'attachment; filename="{pid}.profil.json"'
+    return rep
+
+
+@app.post("/api/profils/importer")
+def api_profil_importer():
+    d = corps_json()
+    try:
+        data, logo = PF.lire_import(str(d.get("contenu") or ""))
+    except PF.ImportInvalide as e:
+        return erreur({"trop_gros": tr("Fichier trop volumineux pour un profil."),
+                       "illisible": tr("Fichier illisible : ce n'est pas du JSON."),
+                       "version": tr("Ce profil vient d'une version plus récente de l'application."),
+                       "logo": tr("Logo du profil illisible.")}.get(str(e), tr("Ce fichier n'est pas un profil exporté par l'application.")))
+    nom = str(d.get("nom") or data.get("nom") or "").strip() or tr("Profil importé")
+    p = creer_profil(nom, langue=data.get("langue"))
+    try:
+        appliquer_maj(p, {k: data[k] for k in ("habillage", "perimetre", "source", "mail", "modele", "langue") if data.get(k)})
+        if logo:
+            nom_logo = f"{p['id']}_logo{logo[1]}"
+            chemin = os.path.join(PROFILS, nom_logo)
+            with open(chemin, "wb") as f:
+                f.write(logo[0])
+            try:
+                from PIL import Image
+                Image.open(chemin).verify()
+            except Exception:
+                os.remove(chemin)
+                raise Refus(tr("Logo du profil illisible."))
+            p["habillage"]["logo"] = nom_logo
+        ecrire_profil(p)
+    except Refus as e:
+        os.remove(_chemin_profil(p["id"]))                      # profil à moitié créé : on le retire
+        return erreur(tr("Profil refusé : {raison}", raison=str(e)))
+    return jsonify(lire_profil(p["id"]))
+
+
 @app.put("/api/profils/<pid>")
 def api_profil_maj(pid):
     p = lire_profil(pid)
-    d = corps_json()
+    try:
+        appliquer_maj(p, corps_json())
+    except Refus as e:
+        return erreur(str(e))
+    ecrire_profil(p)
+    return jsonify(lire_profil(pid))
+
+
+class Refus(Exception):
+    """Mise à jour d'un profil refusée : le message (déjà traduit) est renvoyé à l'interface."""
+
+
+def appliquer_maj(p, d):
+    """Applique à `p` (profil lu) les champs de `d`, avec toutes les validations ; lève Refus. N'écrit rien sur disque."""
     if any(k in d and not isinstance(d[k], dict) for k in ("habillage", "perimetre", "source", "mail")):
-        return erreur(tr("Requête invalide."))
+        raise Refus(tr("Requête invalide."))
     if isinstance(d.get("nom"), str) and d["nom"].strip():
         p["nom"] = d["nom"].strip()
     if d.get("langue") and i18n.valide(d["langue"]) != p["langue"]:
@@ -286,7 +350,7 @@ def api_profil_maj(pid):
                                for k, v in d["habillage"].items() if k in HABILLAGE_DEFAUT and k != "logo"})
         p["habillage"]["logo"] = logo
         if not re.fullmatch(r"#[0-9A-Fa-f]{6}", p["habillage"].get("couleur") or ""):
-            return erreur(tr("Couleur invalide : utilisez le format #RRGGBB."))
+            raise Refus(tr("Couleur invalide : utilisez le format #RRGGBB."))
     if "perimetre" in d:
         per = {**p["perimetre"], **{k: v for k, v in d["perimetre"].items() if k in PERIMETRE_DEFAUT}}
         per["severites"] = [s for s in (per.get("severites") if isinstance(per.get("severites"), list) else [])
@@ -294,34 +358,34 @@ def api_profil_maj(pid):
         for k in ("inclure", "exclure"):                        # filtres de machines : toujours du texte
             per[k] = str(per.get(k) or "")
         if not per["severites"]:
-            return erreur(tr("Retenez au moins une sévérité."))
+            raise Refus(tr("Retenez au moins une sévérité."))
         try:
             per["top"] = max(1, min(100, int(per.get("top") or 20)))
         except (TypeError, ValueError):
-            return erreur(tr("Le nombre de solutions doit être un entier."))
+            raise Refus(tr("Le nombre de solutions doit être un entier."))
         per["ponderation"] = per.get("ponderation") if per.get("ponderation") in ("severite", "vpr", "vpr_acr") else "severite"
         p["perimetre"] = per
     if "source" in d:
         src = {**p["source"], **{k: str(v or "").strip() for k, v in d["source"].items() if k in SOURCE_DEFAUT}}
         for k in ("repositories", "asset_list", "query_id"):
             if not re.fullmatch(r"[0-9, ;]*", src[k]):
-                return erreur(tr("Les identifiants Security Center sont numériques (séparés par des virgules)."))
+                raise Refus(tr("Les identifiants Security Center sont numériques (séparés par des virgules)."))
         if src["produit"] not in ("sc", "vm"):
-            return erreur(tr("Produit inconnu."))
+            raise Refus(tr("Produit inconnu."))
         if src["periode"] not in VMC.PERIODES:
-            return erreur(tr("Période inconnue."))
+            raise Refus(tr("Période inconnue."))
         if not re.fullmatch(r"[0-9a-fA-F:.,/; -]*", src["cidr"]) or src["acr_aes"] not in ("0", "1"):
-            return erreur(tr("Plage d'adresses invalide (exemple : 10.0.0.0/24, 10.1.0.0/16)."))
+            raise Refus(tr("Plage d'adresses invalide (exemple : 10.0.0.0/24, 10.1.0.0/16)."))
         if src["outil"] not in SC.OUTILS or src["source_type"] not in ("cumulative", "patched"):
-            return erreur(tr("Outil ou type de source inconnu."))
+            raise Refus(tr("Outil ou type de source inconnu."))
         SC.Client.filtres(src)                                  # valide le JSON des filtres supplémentaires
         try:                                                    # sélection du périmètre : formes et tailles
-            for k in ("asset_noms", "tags"):
+            for k in ("asset_noms", "tags", "repositories_noms"):
                 if src[k] and not isinstance(json.loads(src[k]), dict):
                     raise ValueError
             PT.depuis_selection({"listes": PT.ids_listes(src), "tags": PT.tags_source(src)})
         except ValueError:
-            return erreur(tr("Sélection du périmètre invalide."))
+            raise Refus(tr("Sélection du périmètre invalide."))
         p["source"] = src
     if "mail" in d:
         m = {**p["mail"], **{k: str(v or "") for k, v in d["mail"].items() if k in MAIL_DEFAUT}}
@@ -329,8 +393,6 @@ def api_profil_maj(pid):
         p["mail"] = m
     if d.get("modele") in MODELES:
         p["modele"] = d["modele"]
-    ecrire_profil(p)
-    return jsonify(lire_profil(pid))
 
 
 @app.delete("/api/profils/<pid>")

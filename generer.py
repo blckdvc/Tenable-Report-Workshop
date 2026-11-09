@@ -64,7 +64,8 @@ if args.profil:
     habillage.update(p.get("habillage", {}))
     if habillage.get("logo"):
         habillage["logo"] = os.path.join(RACINE, "profils", habillage["logo"])
-    perimetre, source, mail_profil = p.get("perimetre"), p.get("source"), p.get("mail") or {}
+    from moteur import profil as PF                       # la source est rangée par produit sur disque : on la remet à plat
+    perimetre, source, mail_profil = p.get("perimetre"), PF.depuis_disque(p.get("source")), p.get("mail") or {}
     langue_profil = p.get("langue")
 else:
     langue_profil = None

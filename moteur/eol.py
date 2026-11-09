@@ -78,7 +78,8 @@ class Referentiel:
                 except Exception:
                     pass
             elif ca_bundle:                                # proxy d'inspection TLS : certificat de l'autorité de l'entreprise
-                session.verify = ca_bundle
+                from . import config as CFG
+                session.verify = CFG.verifier({"ca_bundle": ca_bundle})
         self.s = session
         self.index = {}          # (part, éditeur, produit) -> identifiant endoflife.date
         self.cache = {}          # identifiant -> résultat de /products/{identifiant}

@@ -38,6 +38,13 @@ Sous Windows, remplacez `.venv/bin/python` par `.venv\Scripts\python.exe`.
 
 L'habillage et le périmètre sont propres à chaque profil client. Les règles sont communes à tous les profils.
 
+### Profils portables
+
+- **Exporter / importer** : « Gérer > Exporter ce profil » produit un fichier `<profil>.profil.json` autonome (logo embarqué, aucune clé ni mot de passe) ; « Importer un profil… » le recrée sur un autre poste, avec les mêmes contrôles qu'une saisie manuelle. Un fichier invalide est refusé sans rien créer.
+- **Source rangée par produit** : dans `profils/<profil>.json`, la source est découpée en `securitycenter` et `vulnmanagement` ; changer de produit ne mélange plus leurs réglages. Les anciens profils sont lus tels quels et réécrits au nouveau format à leur prochain enregistrement.
+- **Identifiants Security Center retrouvés par leur nom** : les identifiants de dépôts, de listes d'actifs et de requêtes sont propres à chaque serveur. Le profil mémorise aussi leurs noms (choisissez-les avec le bouton qui liste les éléments disponibles) ; à chaque récupération, l'application retrouve l'identifiant porté par ce nom sur le serveur interrogé. Un nom introuvable arrête la récupération avec un message clair, au lieu d'interroger un autre objet. Un profil sans noms garde ses identifiants.
+- **Chemins et secrets** : les clés d'API et le mot de passe SMTP restent dans `config.json`, propre au poste, et ne figurent jamais dans un profil. Les certificats (PEM) peuvent s'écrire avec un chemin absolu, relatif au dossier de l'application, ou commençant par `~` ; un fichier introuvable est signalé par un message explicite.
+
 ### Récupérer les données directement depuis Security Center (API)
 
 En alternative au fichier CSV, l'application peut interroger Security Center et reconstituer l'export elle-même, avec la même structure que l'export de l'interface. Le reste du traitement est identique.

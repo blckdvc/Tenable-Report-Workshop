@@ -63,6 +63,27 @@ ENV = {
 }
 
 
+def chemin_fichier(valeur):
+    """Chemin d'un fichier de réglage (certificat PEM) : « ~ » et variables d'environnement développés ; un chemin relatif
+    se lit depuis le dossier de l'application, ce qui permet de le copier avec elle d'un poste à l'autre. Vide -> None."""
+    v = str(valeur or "").strip()
+    if not v:
+        return None
+    v = os.path.expanduser(os.path.expandvars(v))
+    return v if os.path.isabs(v) else os.path.join(RACINE, v)
+
+
+def verifier(section, defaut=True):
+    """Valeur `verify` de requests pour une section de config : certificat d'autorité si fourni, sinon `defaut`.
+    Un fichier de certificat introuvable est signalé clairement (sur un autre poste, le chemin d'origine n'existe plus)."""
+    chemin = chemin_fichier((section or {}).get("ca_bundle"))
+    if chemin and not os.path.isfile(chemin):
+        from .regles import ErreurDonnees
+        raise ErreurDonnees(tr("Certificat introuvable : {chemin}. Corrigez le chemin dans l'onglet Configuration "
+                                   "(il peut être relatif au dossier de l'application ou commencer par ~).", chemin=chemin))
+    return chemin or defaut
+
+
 def _fusion(base, extra):
     out = {}
     for section, valeurs in base.items():

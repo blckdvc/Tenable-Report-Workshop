@@ -23,7 +23,10 @@
       <button data-action="nouveau">Nouveau profil</button>
       <button data-action="dupliquer">Dupliquer ce profil</button>
       <button data-action="renommer">Renommer</button>
+      <button data-action="exporter">Exporter ce profil</button>
+      <button data-action="importer">Importer un profil…</button>
       <button data-action="supprimer" class="danger">Supprimer</button>
+      <input type="file" id="profil-import" accept=".json,application/json" hidden>
     </div>
   </div>
   <div class="theme-choix">
@@ -326,7 +329,7 @@
           <div class="champ"><label for="sc-secret">Secret key</label><input id="sc-secret" name="secret_key" type="password" autocomplete="new-password"></div>
         </div>
         <div class="champ"><label for="sc-ca">Certificat de l'autorité (facultatif)</label>
-          <input id="sc-ca" name="ca_bundle" placeholder="Chemin d'un fichier .pem, pour une PKI interne" spellcheck="false"></div>
+          <input id="sc-ca" name="ca_bundle" placeholder="Fichier .pem (chemin absolu, relatif à l'application ou commençant par ~), pour une PKI interne" spellcheck="false"></div>
         <label class="case"><input type="checkbox" id="sc-tls" name="verifier_tls"> Vérifier le certificat du serveur (à ne désactiver que pour un test)</label>
         <div class="actions-form">
           <button type="submit" class="btn-principal">Enregistrer la connexion</button>
@@ -372,7 +375,7 @@
           <div class="champ"><label for="vm-secret">Secret key</label><input id="vm-secret" name="secret_key" type="password" autocomplete="new-password"></div>
         </div>
         <div class="champ"><label for="vm-ca">Certificat de l'autorité (facultatif)</label>
-          <input id="vm-ca" name="ca_bundle" placeholder="Chemin d'un fichier .pem, pour un proxy d'inspection TLS" spellcheck="false"></div>
+          <input id="vm-ca" name="ca_bundle" placeholder="Fichier .pem (chemin absolu, relatif à l'application ou commençant par ~), pour un proxy d'inspection TLS" spellcheck="false"></div>
         <label class="case"><input type="checkbox" id="vm-tls" name="verifier_tls"> Vérifier le certificat du serveur (à ne désactiver que pour un test)</label>
         <div class="actions-form">
           <button type="submit" class="btn-principal">Enregistrer la connexion</button>
@@ -407,7 +410,7 @@
         <h2>Connexion <small>commune à tous les profils</small></h2>
         <p class="aide">Le rapport « Logiciels en fin de vie » interroge le site public endoflife.date (aucune clé). Si un proxy d'entreprise inspecte ce trafic, indiquez son certificat ici : le réglage ne concerne que ce service, pas Security Center ni Vulnerability Management.</p>
         <div class="champ"><label for="eol-ca">Certificat de l'autorité (facultatif)</label>
-          <input id="eol-ca" name="ca_bundle" placeholder="Chemin d'un fichier .pem, pour un proxy d'inspection TLS" spellcheck="false"></div>
+          <input id="eol-ca" name="ca_bundle" placeholder="Fichier .pem (chemin absolu, relatif à l'application ou commençant par ~), pour un proxy d'inspection TLS" spellcheck="false"></div>
         <label class="case"><input type="checkbox" id="eol-tls" name="verifier_tls"> Vérifier le certificat du serveur (à ne désactiver que pour un test)</label>
         <div class="actions-form">
           <button type="submit" class="btn-principal">Enregistrer la connexion</button>

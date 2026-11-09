@@ -22,6 +22,7 @@ try:
 except ImportError:                              # pragma: no cover
     requests = None
 
+from . import config as CFG
 from . import portee as P
 from . import vm as VM
 from .i18n import tr
@@ -118,7 +119,7 @@ class Client:
         self.s.headers.update({"X-ApiKeys": f"accessKey={cfg['access_key']}; secretKey={cfg['secret_key']}",
                                "Accept": "application/json", "User-Agent": "AtelierRapportsTenable/1.0"})
         if cfg.get("verifier_tls", True):
-            self.s.verify = cfg["ca_bundle"] if cfg.get("ca_bundle") else True
+            self.s.verify = CFG.verifier(cfg)
         else:
             self.s.verify = False
             try:

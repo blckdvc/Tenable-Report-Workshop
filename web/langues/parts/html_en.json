@@ -85,7 +85,6 @@
  "Adresse de Security Center": "Security Center address",
  "https://securitycenter.exemple.fr": "https://securitycenter.example.com",
  "Certificat de l'autorité (facultatif)": "Authority certificate (optional)",
- "Chemin d'un fichier .pem, pour une PKI interne": "Path to a .pem file, for an internal PKI",
  "Vérifier le certificat du serveur (à ne désactiver que pour un test)": "Verify the server certificate (disable only for a test)",
  "Enregistrer la connexion": "Save the connection",
  "Tester la connexion": "Test the connection",
@@ -158,7 +157,6 @@
  "Produit": "Product",
  "Clés d'API à créer dans Vulnerability Management (Paramètres, Mon profil, Clés d'API). Elles sont enregistrées dans <code>config.json</code>, lisible par votre utilisateur seul, ou fournies par les variables d'environnement <code>TENABLE_VM_URL</code>, <code>TENABLE_VM_ACCESS_KEY</code> et <code>TENABLE_VM_SECRET_KEY</code>. Le compte doit pouvoir exporter les vulnérabilités (rôle Basic ou supérieur).": "API keys to create in Vulnerability Management (Settings, My Profile, API Keys). They are stored in <code>config.json</code>, readable by your user only, or supplied through the <code>TENABLE_VM_URL</code>, <code>TENABLE_VM_ACCESS_KEY</code> and <code>TENABLE_VM_SECRET_KEY</code> environment variables. The account must be able to export vulnerabilities (Basic role or higher).",
  "Adresse de Vulnerability Management": "Vulnerability Management address",
- "Chemin d'un fichier .pem, pour un proxy d'inspection TLS": "Path to a .pem file, for a TLS inspection proxy",
  "Récupère les vulnérabilités ouvertes (états open et reopened) par l'export de l'API, une ligne par machine et par vulnérabilité. Les sévérités sont celles de l'onglet Périmètre. L'export de gros volumes peut prendre plusieurs minutes.": "Retrieves open vulnerabilities (open and reopened states) through the API export, one row per machine and vulnerability. The severities are those of the Scope tab. Exporting large volumes can take several minutes.",
  "Plage d'adresses (facultatif)": "Address range (optional)",
  "10.0.0.0/24, 10.1.0.0/16 ; vide : tous les assets": "10.0.0.0/24, 10.1.0.0/16; empty: all assets",
@@ -220,5 +218,9 @@
  "365 derniers jours": "Last 365 days",
  "Toute la période": "Whole period",
  "Une machine qui n'a pas été rescannée pendant cette période n'apparaît pas dans l'export.": "A machine that has not been rescanned during this period does not appear in the export.",
- "Le rapport « Logiciels en fin de vie » interroge le site public endoflife.date (aucune clé). Si un proxy d'entreprise inspecte ce trafic, indiquez son certificat ici : le réglage ne concerne que ce service, pas Security Center ni Vulnerability Management.": "The “End-of-life software” report queries the public site endoflife.date (no key needed). If a corporate proxy inspects this traffic, enter its certificate here: the setting applies to this service only, not to Security Center or Vulnerability Management."
+ "Le rapport « Logiciels en fin de vie » interroge le site public endoflife.date (aucune clé). Si un proxy d'entreprise inspecte ce trafic, indiquez son certificat ici : le réglage ne concerne que ce service, pas Security Center ni Vulnerability Management.": "The “End-of-life software” report queries the public site endoflife.date (no key needed). If a corporate proxy inspects this traffic, enter its certificate here: the setting applies to this service only, not to Security Center or Vulnerability Management.",
+ "Fichier .pem (chemin absolu, relatif à l'application ou commençant par ~), pour une PKI interne": "A .pem file (absolute path, relative to the application, or starting with ~), for an internal PKI",
+ "Fichier .pem (chemin absolu, relatif à l'application ou commençant par ~), pour un proxy d'inspection TLS": "A .pem file (absolute path, relative to the application, or starting with ~), for a TLS inspection proxy",
+ "Exporter ce profil": "Export this profile",
+ "Importer un profil…": "Import a profile…"
 }
