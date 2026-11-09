@@ -200,5 +200,8 @@
  "Analyse des logiciels détectés d'après endoflife.date…": "Analisi del software rilevato con endoflife.date…",
  "machines concernées, sur {n}": "macchine interessate, su {n}",
  "Connexion réussie : {n} produits connus d'endoflife.date.": "Connessione riuscita: {n} prodotti noti a endoflife.date.",
- "Logiciels détectés non rapprochés d'endoflife.date : {n} (listés en fin de rapport).": "Software rilevato non abbinato a endoflife.date: {n} (elencato in fondo al rapporto)."
+ "Logiciels détectés non rapprochés d'endoflife.date : {n} (listés en fin de rapport).": "Software rilevato non abbinato a endoflife.date: {n} (elencato in fondo al rapporto).",
+ "Export impossible.": "Esportazione non riuscita.",
+ "Profil exporté : {fichier}.": "Profilo esportato: {fichier}.",
+ "Profil « {nom} » importé.": "Profilo «{nom}» importato."
 }

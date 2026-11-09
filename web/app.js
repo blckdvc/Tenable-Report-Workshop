@@ -246,6 +246,14 @@ menu.addEventListener("click", async (e) => {
     } else if (action === "dupliquer") {
       const nom = prompt(t("Nom du profil copié :"), p.nom + t(" (copie)")); if (!nom) return;
       const n = await api("POST", "/api/profils", { nom, copier: p.id }); await chargerProfils(n.id); toast(t("Profil « {nom} » créé.", { nom: n.nom }));
+    } else if (action === "exporter") {
+      const r = await fetch(`/api/profils/${p.id}/export`);
+      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).erreur || t("Export impossible."));
+      const url = URL.createObjectURL(await r.blob()), a = document.createElement("a");
+      a.href = url; a.download = `${p.id}.profil.json`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+      toast(t("Profil exporté : {fichier}.", { fichier: `${p.id}.profil.json` }));
+    } else if (action === "importer") {
+      $("#profil-import").click();
     } else if (action === "renommer") {
       const nom = prompt(t("Nouveau nom du profil :"), p.nom); if (!nom) return;
       await api("PUT", `/api/profils/${p.id}`, { nom }); await chargerProfils(p.id); toast(t("Profil renommé."));
@@ -253,6 +261,14 @@ menu.addEventListener("click", async (e) => {
       if (!confirm(t("Supprimer le profil « {nom} » ? Son habillage et son périmètre seront perdus.", { nom: p.nom }))) return;
       await api("DELETE", `/api/profils/${p.id}`); await chargerProfils(); toast(t("Profil supprimé."));
     }
+  } catch (err) { toast(err.message, true); }
+});
+
+$("#profil-import").addEventListener("change", async (e) => {
+  const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+  try {
+    const n = await api("POST", "/api/profils/importer", { contenu: await f.text() });
+    await chargerProfils(n.id); toast(t("Profil « {nom} » importé.", { nom: n.nom }));
   } catch (err) { toast(err.message, true); }
 });
 
@@ -675,6 +691,14 @@ function lireSource() {
   const connus = { ...Object.fromEntries(selectionProfil().listes.map((x) => [x.id, x.nom])), ...(etat.nomsListes || {}) };
   const ids = o.asset_list.split(/[,;\s]+/).filter(Boolean).filter((i) => connus[i]);       // noms conservés pour la couverture
   o.asset_noms = ids.length ? JSON.stringify(Object.fromEntries(ids.map((i) => [i, connus[i]]))) : "";
+  /* dépôts et requête : noms mémorisés, car les identifiants sont propres à un serveur (le profil reste valable sur un autre) */
+  const json = (x) => { try { const v = JSON.parse(x || "{}"); return v && typeof v === "object" && !Array.isArray(v) ? v : {}; } catch { return {}; } };
+  const s = etat.profil.source || {};
+  const depots = { ...json(s.repositories_noms), ...(etat.nomsDepots || {}) };
+  const repos = o.repositories.split(/[,;\s]+/).filter(Boolean).filter((i) => depots[i]);
+  o.repositories_noms = repos.length ? JSON.stringify(Object.fromEntries(repos.map((i) => [i, depots[i]]))) : "";
+  const requetes = { ...(s.query_id && s.query_nom ? { [s.query_id]: s.query_nom } : {}), ...(etat.nomsRequetes || {}) };
+  o.query_nom = o.query_id.trim() ? (requetes[o.query_id.trim()] || "") : "";
   return o;
 }
 $("#form-sc-requete").addEventListener("input", () => statut("#statut-sc-requete", t("Modifications non enregistrées")));
@@ -722,6 +746,8 @@ $("#btn-sc-listes").addEventListener("click", async () => {
     const l = await api("GET", "/api/securitycenter/listes");
     pastilles("#chips-repos", "#q-repos", l.repositories, true);
     etat.nomsListes = Object.fromEntries(l.listes_actifs.map((x) => [x.id, x.nom]));
+    etat.nomsDepots = Object.fromEntries(l.repositories.map((x) => [x.id, x.nom]));
+    etat.nomsRequetes = Object.fromEntries(l.requetes.map((x) => [x.id, x.nom]));
     pastilles("#chips-asset", "#q-asset", l.listes_actifs, true);
     pastilles("#chips-query", "#q-query", l.requetes, false);
     statut("#statut-sc-requete", "");

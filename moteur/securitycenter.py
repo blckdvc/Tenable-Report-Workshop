@@ -19,6 +19,7 @@ try:                                             # absente d'une installation an
 except ImportError:                              # pragma: no cover
     requests = None
 
+from . import config as CFG
 from . import portee as P
 from .i18n import tr
 from .regles import ErreurDonnees
@@ -31,7 +32,9 @@ SOURCE_DEFAUT = {
     "repositories": "",                   # identifiants séparés par des virgules ; vide = tous
     "asset_list": "",                     # identifiant(s) de liste(s) d'actifs, séparés par des virgules (union)
     "asset_noms": "",                     # JSON {identifiant: nom} des listes choisies, pour la couverture
+    "repositories_noms": "",              # JSON {identifiant: nom} des dépôts choisis : les identifiants sont propres à un serveur
     "query_id": "",                       # identifiant d'une requête enregistrée (remplace les filtres ci-dessus)
+    "query_nom": "",                      # nom de cette requête
     "filtres": "",                        # filtres supplémentaires : liste JSON de filtres Security Center
 }
 COLONNES = ["Plugin", "Plugin Name", "Family", "Severity", "IP Address", "DNS Name", "NetBIOS Name",
@@ -60,7 +63,7 @@ class Client:
         self.s.mount("https://", HTTPAdapter(max_retries=2))
         self.s.headers["x-apikey"] = f"accesskey={cfg['access_key']}; secretkey={cfg['secret_key']}"
         if cfg.get("verifier_tls", True):
-            self.s.verify = cfg["ca_bundle"] if cfg.get("ca_bundle") else True
+            self.s.verify = CFG.verifier(cfg)
         else:
             self.s.verify = False
             try:
@@ -119,9 +122,54 @@ class Client:
                  "machines": int(x["ipCount"]) if str(x.get("ipCount") or "").isdigit() else None}
                 for x in self._fusion(self._appel("GET", "asset", params={"fields": "id,name,type,ipCount"}))]
 
+    def resoudre(self, source, journal=None):
+        """Source dont les identifiants (dépôts, listes d'actifs, requête enregistrée) sont retrouvés par leur nom sur CE serveur.
+
+        Les identifiants de Security Center sont propres à chaque serveur : un profil copié sur un autre poste ou vers un autre
+        Security Center désignerait sinon d'autres objets, sans erreur. Quand le profil mémorise les noms, on cherche chaque nom
+        sur le serveur et on prend l'identifiant qu'il y porte. Un nom introuvable arrête la récupération avec un message clair.
+        Sans noms mémorisés (profil ancien), les identifiants sont utilisés tels quels."""
+        journal = journal or (lambda m: None)
+        source = {**SOURCE_DEFAUT, **(source or {})}
+        ids_dep = [x.strip() for x in str(source["repositories"]).replace(";", ",").split(",") if x.strip()]
+        ids_act = P.ids_listes(source)
+        ids_req = [str(source["query_id"]).strip()] if str(source["query_id"]).strip() else []
+        noms_dep, noms_act = P._json(source["repositories_noms"], {}), P._json(source["asset_noms"], {})
+        noms_req = {ids_req[0]: source["query_nom"]} if ids_req and source["query_nom"] else {}
+        out = dict(source)
+        for cle, ids, noms, lister, genre in (
+                ("repositories", ids_dep, noms_dep, self.repositories, tr("Le dépôt")),
+                ("asset_list", ids_act, noms_act, self.listes_actifs, tr("La liste d'actifs")),
+                ("query_id", ids_req, noms_req, self.requetes, tr("La requête enregistrée"))):
+            if not any(noms.get(i) for i in ids):
+                continue
+            serveur = lister()
+            par_id = {x["id"]: x["nom"] for x in serveur}
+            nouveaux, renommes = [], {}
+            for i in ids:
+                nom = str(noms.get(i) or "")
+                if not nom:
+                    nouveaux.append(i)
+                    continue
+                trouves = [x["id"] for x in serveur if x["nom"].casefold() == nom.casefold()]
+                if not trouves:
+                    raise ErreurDonnees(tr("{genre} « {nom} » est introuvable sur ce Security Center. Les identifiants sont propres à "
+                                           "chaque serveur : rouvrez l'onglet Configuration, cliquez sur le bouton qui liste les "
+                                           "dépôts, listes d'actifs et requêtes, puis choisissez-le de nouveau.", genre=genre, nom=nom))
+                j = i if i in trouves else trouves[0]
+                if j != i:
+                    journal(tr("{genre} « {nom} » : identifiant {nouveau} sur ce serveur (le profil mémorisait {ancien}).",
+                               genre=genre, nom=nom, nouveau=j, ancien=i))
+                nouveaux.append(j)
+                renommes[j] = par_id.get(j) or nom
+            out[cle] = ", ".join(nouveaux) if cle != "query_id" else (nouveaux[0] if nouveaux else "")
+            if cle == "asset_list":
+                out["asset_noms"] = json.dumps({j: renommes.get(j) or noms_act.get(j, "") for j in nouveaux}, ensure_ascii=False)
+        return out
+
     def decompter(self, source):
         """Nombre de machines (adresses IP) portant au moins une vulnérabilité dans la sélection : outil « sumip »."""
-        source = {**SOURCE_DEFAUT, **(source or {})}
+        source = self.resoudre(source)
         rep = self._appel("POST", "analysis", json={
             "type": "vuln", "sourceType": "cumulative", "sortField": "score", "sortDir": "DESC",
             "query": {"type": "vuln", "tool": "sumip", "filters": self.filtres({**source, "filtres": ""}), "startOffset": 0, "endOffset": 1}})
@@ -190,6 +238,7 @@ class Client:
         import time
         journal = journal or (lambda m: None)
         t0, lignes, debut, total, premiere = time.time(), [], 0, None, []
+        source = self.resoudre(source, journal)
         journal(tr("Interrogation de Security Center ({url}), par pages de {taille} lignes.", url=self.url, taille=self.taille_page))
         while total is None or debut < total:
             rep = self._appel("POST", "analysis", json=self.corps(source, debut, debut + self.taille_page, severites))

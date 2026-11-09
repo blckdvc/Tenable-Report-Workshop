@@ -245,6 +245,13 @@ def contenu():
           *h2("Profiles and language"),
           p("A profile holds everything that is specific to a client: branding, scope, Tenable product and export query, email "
             "message and language. Use **Manage** to create, duplicate, rename or delete profiles. The last profile cannot be deleted."),
+          p("**Moving a profile.** In the profile menu, **Export this profile** saves one self-contained `.profil.json` file: the "
+            "logo is embedded and no API key or password is included (those stay in `config.json`, on each computer). "
+            "**Import a profile…** recreates it elsewhere, with the same checks as manual input; an invalid file is refused "
+            "and nothing is created. Security Center identifiers (repositories, asset lists, saved queries) are specific to each "
+            "server, so the profile also keeps their names and looks the identifiers up by name on every fetch. If a name no "
+            "longer exists on the server, the fetch stops with a clear message rather than querying another object. Certificate "
+            "paths in the Configuration tab can be absolute, relative to the application folder, or start with `~`."),
           F.deux("menu_profils.png", "The profile menu.", "menu_langues.png", "The language menu."),
           *h2("Theme"),
           p("The **Theme** button, at the top right, switches the look of the application and of the reports it produces. "

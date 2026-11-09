@@ -85,7 +85,6 @@
  "Adresse de Security Center": "Dirección de Security Center",
  "https://securitycenter.exemple.fr": "https://securitycenter.ejemplo.es",
  "Certificat de l'autorité (facultatif)": "Certificado de la autoridad (opcional)",
- "Chemin d'un fichier .pem, pour une PKI interne": "Ruta de un archivo .pem, para una PKI interna",
  "Vérifier le certificat du serveur (à ne désactiver que pour un test)": "Verificar el certificado del servidor (desactívelo solo para una prueba)",
  "Enregistrer la connexion": "Guardar la conexión",
  "Tester la connexion": "Probar la conexión",
@@ -158,7 +157,6 @@
  "Produit": "Producto",
  "Clés d'API à créer dans Vulnerability Management (Paramètres, Mon profil, Clés d'API). Elles sont enregistrées dans <code>config.json</code>, lisible par votre utilisateur seul, ou fournies par les variables d'environnement <code>TENABLE_VM_URL</code>, <code>TENABLE_VM_ACCESS_KEY</code> et <code>TENABLE_VM_SECRET_KEY</code>. Le compte doit pouvoir exporter les vulnérabilités (rôle Basic ou supérieur).": "Claves de API que se crean en Vulnerability Management (Configuración, Mi perfil, Claves de API). Se guardan en <code>config.json</code>, legible solo por su usuario, o se aportan mediante las variables de entorno <code>TENABLE_VM_URL</code>, <code>TENABLE_VM_ACCESS_KEY</code> y <code>TENABLE_VM_SECRET_KEY</code>. La cuenta debe poder exportar vulnerabilidades (rol Basic o superior).",
  "Adresse de Vulnerability Management": "Dirección de Vulnerability Management",
- "Chemin d'un fichier .pem, pour un proxy d'inspection TLS": "Ruta de un archivo .pem, para un proxy de inspección TLS",
  "Récupère les vulnérabilités ouvertes (états open et reopened) par l'export de l'API, une ligne par machine et par vulnérabilité. Les sévérités sont celles de l'onglet Périmètre. L'export de gros volumes peut prendre plusieurs minutes.": "Recupera las vulnerabilidades abiertas (estados open y reopened) mediante la exportación de la API, una fila por equipo y vulnerabilidad. Las severidades son las de la pestaña Perímetro. Exportar grandes volúmenes puede tardar varios minutos.",
  "Plage d'adresses (facultatif)": "Rango de direcciones (opcional)",
  "10.0.0.0/24, 10.1.0.0/16 ; vide : tous les assets": "10.0.0.0/24, 10.1.0.0/16; vacío: todos los activos",
@@ -220,5 +218,9 @@
  "365 derniers jours": "Últimos 365 días",
  "Toute la période": "Todo el periodo",
  "Une machine qui n'a pas été rescannée pendant cette période n'apparaît pas dans l'export.": "Una máquina que no se ha vuelto a escanear durante este periodo no aparece en la exportación.",
- "Le rapport « Logiciels en fin de vie » interroge le site public endoflife.date (aucune clé). Si un proxy d'entreprise inspecte ce trafic, indiquez son certificat ici : le réglage ne concerne que ce service, pas Security Center ni Vulnerability Management.": "El informe «Software al final de su vida útil» consulta el sitio público endoflife.date (sin clave). Si un proxy de empresa inspecciona este tráfico, indique aquí su certificado: el ajuste solo afecta a este servicio, no a Security Center ni a Vulnerability Management."
+ "Le rapport « Logiciels en fin de vie » interroge le site public endoflife.date (aucune clé). Si un proxy d'entreprise inspecte ce trafic, indiquez son certificat ici : le réglage ne concerne que ce service, pas Security Center ni Vulnerability Management.": "El informe «Software al final de su vida útil» consulta el sitio público endoflife.date (sin clave). Si un proxy de empresa inspecciona este tráfico, indique aquí su certificado: el ajuste solo afecta a este servicio, no a Security Center ni a Vulnerability Management.",
+ "Fichier .pem (chemin absolu, relatif à l'application ou commençant par ~), pour une PKI interne": "Archivo .pem (ruta absoluta, relativa a la aplicación o que empieza por ~), para una PKI interna",
+ "Fichier .pem (chemin absolu, relatif à l'application ou commençant par ~), pour un proxy d'inspection TLS": "Archivo .pem (ruta absoluta, relativa a la aplicación o que empieza por ~), para un proxy de inspección TLS",
+ "Exporter ce profil": "Exportar este perfil",
+ "Importer un profil…": "Importar un perfil…"
 }
