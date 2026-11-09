@@ -112,6 +112,7 @@ Ce modèle fonctionne avec Security Center et Vulnerability Management. Il part 
 
 - **Scan authentifié ou agent obligatoire** : sans identifiants, le plugin 45590 ne rend rien.
 - **Complétude limitée aux logiciels qui déclarent un CPE** (cpe:/), ce qui est en principe le cas des logiciels installés proprement et reconnus par Tenable.
+- **Version cible** : une version encore supportée et plus récente que celle détectée, à support long (LTS) de préférence. Si seule une version plus ancienne reste supportée (par exemple OpenSSL 3.6, sans support long, dont la seule branche supportée est la 3.5 LTS), c'est celle-ci qui est indiquée et la fiche le précise.
 - Les CPE absents d'endoflife.date, sans version ou sans cycle connu sont listés en fin de rapport (les 15 plus répandus).
 - Le poste doit joindre https://endoflife.date ; sinon la génération s'arrête avec un message d'erreur. Si un proxy d'entreprise inspecte le trafic TLS, indiquez son certificat (PEM) dans l'onglet Configuration, section « endoflife.date » : ce réglage est propre à ce service, distinct de Security Center et de Vulnerability Management. Le bouton « Tester la connexion » le vérifie sans lancer de rapport.
 - Traductions : anglais, espagnol et italien dans `moteur/langues/eol.json` (rapport, messages d'erreur, journal).

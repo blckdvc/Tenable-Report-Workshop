@@ -72,6 +72,8 @@ Each template has a "See an example" button: the cover preview then shows the se
 
 ![Choosing a template](outils/guide/images/generer_modeles.png)
 
+The end-of-life report's target version is a supported version newer than the one detected (long-term support preferred); if only an older one is still supported, the product sheet says so.
+
 For the end-of-life report, select its template **before** fetching through the API, so the software list is collected with the vulnerabilities.
 
 ### Command line

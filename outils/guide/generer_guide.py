@@ -397,6 +397,9 @@ def contenu():
                  "unsupported products.",
                  "**Needs Internet access** to endoflife.date from the computer running the application. Behind a TLS-inspecting "
                  "proxy, give the proxy's root certificate in the endoflife.date block of the Configuration tab.",
+                 "**Target version.** The report suggests a version still supported by the vendor and newer than the one found, "
+                 "preferring a long-term support (LTS) release. If only an older one is still supported (for example OpenSSL 3.6, "
+                 "whose only supported branch is the 3.5 LTS), that one is shown and the product sheet says it is older.",
                  "**Software that declares no CPE, or machines scanned without credentials or agent, do not appear.** The report "
                  "says so, and lists the detected software that could not be matched."], numerotee=False),
           F.une("eol_generer.png", "The Generate tab with the end-of-life template: the summary adds the end-of-life figures.", 0.8),
