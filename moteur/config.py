@@ -84,6 +84,58 @@ def verifier(section, defaut=True):
     return chemin or defaut
 
 
+SMTP_PROFIL_DEFAUT = {                  # serveur d'envoi propre à un profil client (sans mot de passe : il reste dans config.json)
+    "hote": "", "port": 587, "securite": "starttls", "utilisateur": "", "expediteur": "", "nom_expediteur": "", "verifier_tls": True,
+}
+
+
+def _brut():
+    try:
+        with open(CHEMIN, encoding="utf-8") as f:
+            d = json.load(f)
+        return d if isinstance(d, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def mot_de_passe_smtp(pid):
+    """Mot de passe SMTP propre à un profil (config.json, clé « mots_de_passe_smtp »), ou « »."""
+    m = _brut().get("mots_de_passe_smtp")
+    return str(m.get(pid) or "") if isinstance(m, dict) else ""
+
+
+def definir_mot_de_passe_smtp(pid, valeur):
+    """Enregistre (ou, si `valeur` est vide, supprime) le mot de passe SMTP d'un profil. Il ne quitte jamais config.json."""
+    actuel = lire(avec_env=False, traduire=False)
+    m = _brut().get("mots_de_passe_smtp")
+    m = dict(m) if isinstance(m, dict) else {}
+    if valeur:
+        m[pid] = str(valeur)
+    else:
+        m.pop(pid, None)
+    actuel["mots_de_passe_smtp"] = m
+    _ecrire_fichier(actuel)
+
+
+def smtp_effectif(smtp_profil, pid):
+    """Réglages SMTP à utiliser pour un profil : les siens s'il a un serveur, sinon ceux, communs, de config.json.
+
+    Le mot de passe d'un profil vient de SMTP_PASSWORD, sinon de config.json (propre au profil) ; à défaut, celui du serveur
+    commun quand l'utilisateur est le même."""
+    glob = lire()["smtp"]
+    ps = {**SMTP_PROFIL_DEFAUT, **(smtp_profil or {})}
+    if not ps["hote"]:
+        return glob
+    cfg = {**glob, **{k: ps[k] for k in SMTP_PROFIL_DEFAUT}}
+    if not ps["nom_expediteur"]:
+        cfg["nom_expediteur"] = glob["nom_expediteur"]
+    mdp = os.environ.get("SMTP_PASSWORD") or mot_de_passe_smtp(pid)
+    if not mdp and ps["utilisateur"] == glob["utilisateur"]:
+        mdp = glob["mot_de_passe"]
+    cfg["mot_de_passe"] = mdp
+    return cfg
+
+
 def _fusion(base, extra):
     out = {}
     for section, valeurs in base.items():
@@ -144,6 +196,12 @@ def ecrire(maj):
                 val = str(val or "").strip()
             actuel[section][cle] = val
     actuel["securitycenter"]["url"] = actuel["securitycenter"]["url"].rstrip("/")
+    if isinstance(_brut().get("mots_de_passe_smtp"), dict):
+        actuel["mots_de_passe_smtp"] = _brut()["mots_de_passe_smtp"]          # mots de passe propres aux profils : conservés
+    _ecrire_fichier(actuel)
+
+
+def _ecrire_fichier(actuel):
     tmp = CHEMIN + ".tmp"
     fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
     with os.fdopen(fd, "w", encoding="utf-8") as f:

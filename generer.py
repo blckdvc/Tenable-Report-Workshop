@@ -54,7 +54,7 @@ ap.add_argument("--mail", metavar=tr("ADRESSES"), help=tr("envoie le rapport par
 args = ap.parse_args()
 
 m = MODELES[args.modele]
-habillage, perimetre, source, mail_profil = dict(HABILLAGE_DEFAUT), None, None, {}
+habillage, perimetre, source, mail_profil, smtp_profil = dict(HABILLAGE_DEFAUT), None, None, {}, None
 if args.profil:
     chemin = os.path.join(RACINE, "profils", f"{args.profil}.json")
     if not os.path.exists(chemin):
@@ -66,6 +66,7 @@ if args.profil:
         habillage["logo"] = os.path.join(RACINE, "profils", habillage["logo"])
     from moteur import profil as PF                       # la source est rangée par produit sur disque : on la remet à plat
     perimetre, source, mail_profil = p.get("perimetre"), PF.depuis_disque(p.get("source")), p.get("mail") or {}
+    smtp_profil = p.get("smtp")
     langue_profil = p.get("langue")
 else:
     langue_profil = None
@@ -135,7 +136,7 @@ if args.mail:
             t = t.replace("{" + k + "}", v)
         return t
     try:
-        envoyes = MAIL.envoyer(CFG.lire()["smtp"], cible, gabarit(mail_profil.get("objet") or "{titre} - {client}").strip(" -"),
+        envoyes = MAIL.envoyer(CFG.smtp_effectif(smtp_profil, args.profil), cible, gabarit(mail_profil.get("objet") or "{titre} - {client}").strip(" -"),
                                gabarit(mail_profil.get("message") or tr("Veuillez trouver le rapport en pièce jointe.")), [sortie])
     except R.ErreurDonnees as e:
         sys.exit(tr("Rapport généré mais non envoyé : {err}", err=e))

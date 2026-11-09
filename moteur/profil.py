@@ -48,7 +48,7 @@ def exporter(profil, logo_octets=None, logo_ext=None):
         h["logo"] = {"extension": logo_ext.lstrip(".").lower(), "donnees": base64.b64encode(logo_octets).decode("ascii")}
     return {"format": FORMAT, "version": VERSION, "nom": profil.get("nom"), "langue": profil.get("langue"),
             "habillage": h, "perimetre": profil["perimetre"], "modele": profil.get("modele"),
-            "source": vers_disque(profil["source"]), "mail": profil["mail"]}
+            "source": vers_disque(profil["source"]), "mail": profil["mail"], "smtp": profil.get("smtp") or {}}
 
 
 class ImportInvalide(ValueError):
@@ -83,5 +83,6 @@ def lire_import(texte):
         logo = (octets, ext)
     out = {"nom": d.get("nom"), "langue": d.get("langue"), "habillage": h, "modele": d.get("modele"),
            "perimetre": d.get("perimetre") if isinstance(d.get("perimetre"), dict) else {},
-           "source": depuis_disque(d.get("source")), "mail": d.get("mail") if isinstance(d.get("mail"), dict) else {}}
+           "source": depuis_disque(d.get("source")), "mail": d.get("mail") if isinstance(d.get("mail"), dict) else {},
+           "smtp": d.get("smtp") if isinstance(d.get("smtp"), dict) else {}}
     return out, logo

@@ -420,8 +420,8 @@
       </form>
       <h2 class="sec-titre">Courriel</h2>
       <form class="formulaire carte" id="form-smtp" autocomplete="off">
-        <h2>Serveur SMTP <small>commun à tous les profils</small></h2>
-        <p class="aide" data-i18n-html>Les rapports sont envoyés en pièce jointe, uniquement quand vous le demandez. Le mot de passe est enregistré dans <code>config.json</code> ou fourni par <code>SMTP_PASSWORD</code>.</p>
+        <h2>Serveur SMTP <small>propre au profil client</small></h2>
+        <p class="aide" data-i18n-html>Les rapports sont envoyés en pièce jointe, uniquement quand vous le demandez. Le serveur est enregistré dans le profil (il suit un export du profil) ; le mot de passe reste dans <code>config.json</code>, sur ce poste, ou est fourni par <code>SMTP_PASSWORD</code>. Un profil sans serveur utilise celui de <code>config.json</code>.</p>
         <div class="deux-col">
           <div class="champ"><label for="m-hote">Serveur</label><input id="m-hote" name="hote" placeholder="smtp.exemple.fr" spellcheck="false"></div>
           <div class="champ"><label for="m-port">Port</label><input id="m-port" name="port" type="number" min="1" max="65535"></div>
