@@ -41,7 +41,6 @@
     "Version détectée": "Detected version",
     "Version cible": "Target version",
     "3. Inventaire et plan de migration": "3. Inventory and migration plan",
-    "Les produits sont classés par urgence : d'abord ceux qui sont déjà hors support, du plus répandu au moins répandu, puis ceux dont l'échéance approche. La version cible est la plus récente version encore supportée selon endoflife.date.": "Products are ranked by urgency: first those already out of support, from the most to the least widespread, then those whose deadline is approaching. The target version is the most recent version still supported according to endoflife.date.",
     "{produits} · {occ} occurrences sur {machines} (une machine peut porter plusieurs produits).": "{produits} · {occ} occurrences on {machines} (a machine can run several products).",
     "Tant que la migration n'est pas faite, isoler les machines concernées et limiter leurs flux entrants.": "Until the migration is done, isolate the affected machines and limit their inbound traffic.",
     "Planifier la migration vers {cible} avant le {date}.": "Plan the migration to {cible} before {date}.",
@@ -54,7 +53,6 @@
     "Date de fin de support": "End-of-support date",
     "Date de fin de vie publiée par endoflife.date pour le cycle de la version détectée. Les supports payants (Ubuntu Pro, mises à jour de sécurité étendues de Microsoft) ne sont pas pris en compte.": "End-of-life date published by endoflife.date for the cycle of the detected version. Paid support (Ubuntu Pro, Microsoft extended security updates) is not taken into account.",
     "Dépassée : la date est passée. Sous 12 mois : la date tombe dans l'année qui vient. Les produits dont le support dépasse 12 mois ne sont pas listés.": "Passed: the date has gone by. Within 12 months: the date falls in the coming year. Products whose support lasts more than 12 months are not listed.",
-    "La version la plus récente encore supportée selon le référentiel, en version à support long (LTS) quand il en existe une. Elle est à valider avec les contraintes de chaque application.": "The most recent version still supported according to the reference data, as a long-term support (LTS) version when one exists. It must be validated against each application's constraints.",
     "Ce qui n'est pas couvert": "What is not covered",
     "Un logiciel qui ne déclare pas de CPE, ou que le référentiel ne connaît pas, n'apparaît pas dans les chiffres. Il figure alors dans la liste ci-dessous, quand sa présence est connue.": "Software that does not declare a CPE, or that the reference data does not know, does not appear in the figures. It is then shown in the list below, when its presence is known.",
     "5. Méthode et sources": "5. Method and sources",
@@ -99,7 +97,12 @@
     "produit": "product|products",
     "logiciel": "software item|software items",
     "Le certificat d'endoflife.date n'est pas reconnu, probablement à cause d'un proxy qui inspecte le trafic TLS. Indiquez le certificat de votre autorité (fichier PEM) dans l'onglet Configuration, section « endoflife.date », champ « Certificat de l'autorité » (ou dans la variable d'environnement REQUESTS_CA_BUNDLE). ({err})": "The endoflife.date certificate is not recognised, probably because a proxy inspects TLS traffic. Enter your authority's certificate (PEM file) in the Configuration tab, “endoflife.date” section, “Authority certificate” field (or in the REQUESTS_CA_BUNDLE environment variable). ({err})",
-    "{produit} le {date} ({ecart})": "{produit} on {date} ({ecart})"
+    "{produit} le {date} ({ecart})": "{produit} on {date} ({ecart})",
+    "Une version encore supportée selon le référentiel, plus récente que celle détectée, en version à support long (LTS) quand il en existe une. Si seule une version plus ancienne reste supportée, c'est elle qui est indiquée et la fiche le précise. Elle est à valider avec les contraintes de chaque application.": "A version still supported according to the reference data, newer than the one detected, as a long-term support (LTS) version when one exists. If only an older version is still supported, that one is shown and the product sheet says so. It must be validated against each application's constraints.",
+    "Cette version est plus ancienne que celle installée, mais c'est la seule encore supportée selon endoflife.date.": "This version is older than the one installed, but it is the only one still supported according to endoflife.date.",
+    "Migrer vers {cible}.": "Migrate to {cible}.",
+    "Migrer vers {cible}, version à support long encore supportée selon endoflife.date.": "Migrate to {cible}, a long-term support version still supported according to endoflife.date.",
+    "Les produits sont classés par urgence : d'abord ceux qui sont déjà hors support, du plus répandu au moins répandu, puis ceux dont l'échéance approche. La version cible est une version encore supportée selon endoflife.date (voir la note de méthode).": "Products are ranked by urgency: first those already out of support, from the most to the least widespread, then those whose deadline is approaching. The target version is a version still supported according to endoflife.date (see the method note)."
   },
   "es": {
     "Recherche des logiciels détectés (plugin {plugin}, Common Platform Enumeration).": "Búsqueda del software detectado (plugin {plugin}, Common Platform Enumeration).",
@@ -143,7 +146,6 @@
     "Version détectée": "Versión detectada",
     "Version cible": "Versión objetivo",
     "3. Inventaire et plan de migration": "3. Inventario y plan de migración",
-    "Les produits sont classés par urgence : d'abord ceux qui sont déjà hors support, du plus répandu au moins répandu, puis ceux dont l'échéance approche. La version cible est la plus récente version encore supportée selon endoflife.date.": "Los productos se clasifican por urgencia: primero los que ya no tienen soporte, del más al menos extendido, y luego los que se acercan a su vencimiento. La versión objetivo es la más reciente que sigue con soporte según endoflife.date.",
     "{produits} · {occ} occurrences sur {machines} (une machine peut porter plusieurs produits).": "{produits} · {occ} apariciones en {machines} (un equipo puede tener varios productos).",
     "Tant que la migration n'est pas faite, isoler les machines concernées et limiter leurs flux entrants.": "Mientras no se haya migrado, aísle los equipos afectados y limite sus flujos entrantes.",
     "Planifier la migration vers {cible} avant le {date}.": "Planifique la migración a {cible} antes del {date}.",
@@ -156,7 +158,6 @@
     "Date de fin de support": "Fecha de fin de soporte",
     "Date de fin de vie publiée par endoflife.date pour le cycle de la version détectée. Les supports payants (Ubuntu Pro, mises à jour de sécurité étendues de Microsoft) ne sont pas pris en compte.": "Fecha de fin de vida publicada por endoflife.date para el ciclo de la versión detectada. No se tienen en cuenta los soportes de pago (Ubuntu Pro, actualizaciones de seguridad extendidas de Microsoft).",
     "Dépassée : la date est passée. Sous 12 mois : la date tombe dans l'année qui vient. Les produits dont le support dépasse 12 mois ne sont pas listés.": "Superada: la fecha ya pasó. En menos de 12 meses: la fecha cae en el próximo año. Los productos con soporte de más de 12 meses no se listan.",
-    "La version la plus récente encore supportée selon le référentiel, en version à support long (LTS) quand il en existe une. Elle est à valider avec les contraintes de chaque application.": "La versión más reciente que sigue con soporte según la referencia, en versión de soporte a largo plazo (LTS) cuando existe. Debe validarse con las restricciones de cada aplicación.",
     "Ce qui n'est pas couvert": "Lo que no se cubre",
     "Un logiciel qui ne déclare pas de CPE, ou que le référentiel ne connaît pas, n'apparaît pas dans les chiffres. Il figure alors dans la liste ci-dessous, quand sa présence est connue.": "Un software que no declara CPE, o que la referencia no conoce, no aparece en las cifras. Figura entonces en la lista siguiente, cuando se conoce su presencia.",
     "5. Méthode et sources": "5. Método y fuentes",
@@ -201,7 +202,12 @@
     "produit": "producto|productos",
     "logiciel": "software|software",
     "Le certificat d'endoflife.date n'est pas reconnu, probablement à cause d'un proxy qui inspecte le trafic TLS. Indiquez le certificat de votre autorité (fichier PEM) dans l'onglet Configuration, section « endoflife.date », champ « Certificat de l'autorité » (ou dans la variable d'environnement REQUESTS_CA_BUNDLE). ({err})": "No se reconoce el certificado de endoflife.date, probablemente porque un proxy inspecciona el tráfico TLS. Indique el certificado de su autoridad (archivo PEM) en la pestaña Configuración, sección «endoflife.date», campo «Certificado de la autoridad» (o en la variable de entorno REQUESTS_CA_BUNDLE). ({err})",
-    "{produit} le {date} ({ecart})": "{produit} el {date} ({ecart})"
+    "{produit} le {date} ({ecart})": "{produit} el {date} ({ecart})",
+    "Une version encore supportée selon le référentiel, plus récente que celle détectée, en version à support long (LTS) quand il en existe une. Si seule une version plus ancienne reste supportée, c'est elle qui est indiquée et la fiche le précise. Elle est à valider avec les contraintes de chaque application.": "Una versión que sigue con soporte según la referencia, más reciente que la detectada, en versión de soporte a largo plazo (LTS) cuando existe. Si solo una versión más antigua sigue con soporte, se indica esa y la ficha lo precisa. Debe validarse con las restricciones de cada aplicación.",
+    "Cette version est plus ancienne que celle installée, mais c'est la seule encore supportée selon endoflife.date.": "Esta versión es más antigua que la instalada, pero es la única que sigue con soporte según endoflife.date.",
+    "Migrer vers {cible}.": "Migrar a {cible}.",
+    "Migrer vers {cible}, version à support long encore supportée selon endoflife.date.": "Migrar a {cible}, versión de soporte a largo plazo que sigue con soporte según endoflife.date.",
+    "Les produits sont classés par urgence : d'abord ceux qui sont déjà hors support, du plus répandu au moins répandu, puis ceux dont l'échéance approche. La version cible est une version encore supportée selon endoflife.date (voir la note de méthode).": "Los productos se clasifican por urgencia: primero los que ya no tienen soporte, del más al menos extendido, y luego los que se acercan a su vencimiento. La versión objetivo es una versión que sigue con soporte según endoflife.date (véase la nota de método)."
   },
   "it": {
     "Recherche des logiciels détectés (plugin {plugin}, Common Platform Enumeration).": "Ricerca del software rilevato (plugin {plugin}, Common Platform Enumeration).",
@@ -245,7 +251,6 @@
     "Version détectée": "Versione rilevata",
     "Version cible": "Versione di destinazione",
     "3. Inventaire et plan de migration": "3. Inventario e piano di migrazione",
-    "Les produits sont classés par urgence : d'abord ceux qui sont déjà hors support, du plus répandu au moins répandu, puis ceux dont l'échéance approche. La version cible est la plus récente version encore supportée selon endoflife.date.": "I prodotti sono ordinati per urgenza: prima quelli già fuori supporto, dal più al meno diffuso, poi quelli la cui scadenza si avvicina. La versione di destinazione è la più recente ancora supportata secondo endoflife.date.",
     "{produits} · {occ} occurrences sur {machines} (une machine peut porter plusieurs produits).": "{produits} · {occ} occorrenze su {machines} (una macchina può avere più prodotti).",
     "Tant que la migration n'est pas faite, isoler les machines concernées et limiter leurs flux entrants.": "Finché la migrazione non è completata, isolare le macchine interessate e limitarne i flussi in ingresso.",
     "Planifier la migration vers {cible} avant le {date}.": "Pianificare la migrazione a {cible} prima del {date}.",
@@ -258,7 +263,6 @@
     "Date de fin de support": "Data di fine supporto",
     "Date de fin de vie publiée par endoflife.date pour le cycle de la version détectée. Les supports payants (Ubuntu Pro, mises à jour de sécurité étendues de Microsoft) ne sont pas pris en compte.": "Data di fine vita pubblicata da endoflife.date per il ciclo della versione rilevata. I supporti a pagamento (Ubuntu Pro, aggiornamenti di sicurezza estesi di Microsoft) non sono considerati.",
     "Dépassée : la date est passée. Sous 12 mois : la date tombe dans l'année qui vient. Les produits dont le support dépasse 12 mois ne sont pas listés.": "Superata: la data è passata. Entro 12 mesi: la data cade nell'anno in corso. I prodotti il cui supporto supera i 12 mesi non sono elencati.",
-    "La version la plus récente encore supportée selon le référentiel, en version à support long (LTS) quand il en existe une. Elle est à valider avec les contraintes de chaque application.": "La versione più recente ancora supportata secondo il riferimento, in versione a supporto esteso (LTS) quando esiste. Va convalidata rispetto ai vincoli di ogni applicazione.",
     "Ce qui n'est pas couvert": "Cosa non è coperto",
     "Un logiciel qui ne déclare pas de CPE, ou que le référentiel ne connaît pas, n'apparaît pas dans les chiffres. Il figure alors dans la liste ci-dessous, quand sa présence est connue.": "Un software che non dichiara un CPE, o che il riferimento non conosce, non compare nelle cifre. Figura allora nell'elenco seguente, quando la sua presenza è nota.",
     "5. Méthode et sources": "5. Metodo e fonti",
@@ -303,6 +307,11 @@
     "produit": "prodotto|prodotti",
     "logiciel": "software|software",
     "Le certificat d'endoflife.date n'est pas reconnu, probablement à cause d'un proxy qui inspecte le trafic TLS. Indiquez le certificat de votre autorité (fichier PEM) dans l'onglet Configuration, section « endoflife.date », champ « Certificat de l'autorité » (ou dans la variable d'environnement REQUESTS_CA_BUNDLE). ({err})": "Il certificato di endoflife.date non è riconosciuto, probabilmente a causa di un proxy che ispeziona il traffico TLS. Indicare il certificato della propria autorità (file PEM) nella scheda Configurazione, sezione «endoflife.date», campo «Certificato dell'autorità» (oppure nella variabile d'ambiente REQUESTS_CA_BUNDLE). ({err})",
-    "{produit} le {date} ({ecart})": "{produit} il {date} ({ecart})"
+    "{produit} le {date} ({ecart})": "{produit} il {date} ({ecart})",
+    "Une version encore supportée selon le référentiel, plus récente que celle détectée, en version à support long (LTS) quand il en existe une. Si seule une version plus ancienne reste supportée, c'est elle qui est indiquée et la fiche le précise. Elle est à valider avec les contraintes de chaque application.": "Una versione ancora supportata secondo il riferimento, più recente di quella rilevata, in versione a supporto esteso (LTS) quando esiste. Se resta supportata solo una versione più vecchia, è questa a essere indicata e la scheda lo precisa. Va convalidata rispetto ai vincoli di ogni applicazione.",
+    "Cette version est plus ancienne que celle installée, mais c'est la seule encore supportée selon endoflife.date.": "Questa versione è più vecchia di quella installata, ma è l'unica ancora supportata secondo endoflife.date.",
+    "Migrer vers {cible}.": "Migrare a {cible}.",
+    "Migrer vers {cible}, version à support long encore supportée selon endoflife.date.": "Migrare a {cible}, versione a supporto esteso ancora supportata secondo endoflife.date.",
+    "Les produits sont classés par urgence : d'abord ceux qui sont déjà hors support, du plus répandu au moins répandu, puis ceux dont l'échéance approche. La version cible est une version encore supportée selon endoflife.date (voir la note de méthode).": "I prodotti sono ordinati per urgenza: prima quelli già fuori supporto, dal più al meno diffuso, poi quelli la cui scadenza si avvicina. La versione di destinazione è una versione ancora supportata secondo endoflife.date (vedi la nota di metodo)."
   }
 }
